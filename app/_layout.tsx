@@ -25,5 +25,9 @@ export default function Layout() {
     return <SplashScreenComponent />;
   }
 
-  return <Stack />;
+  return (
+    <Stack screenOptions={{
+      headerShown: false,
+    }} />
+  );
 }

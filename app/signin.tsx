@@ -1,0 +1,182 @@
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native';
+import { useState } from 'react';
+import { router } from 'expo-router';
+import Checkbox from 'expo-checkbox';
+import Eye from '../assets/icons/Eye';
+import EyeOff from '../assets/icons/EyeOff';
+import ArrowRight from '../assets/icons/ArrowRight';
+
+export default function SignIn() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const handleSignIn = () => {
+    // Handle sign in logic here
+    console.log('Sign in:', { username, password, rememberMe });
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../assets/images/yello_logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      <View style={styles.formContainer}>
+        <Text style={styles.title}>Please Enter Credentials</Text>
+
+        <View style={styles.inputWrapper}>
+          <Text style={styles.label}>Username</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter username"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              placeholderTextColor="#666"
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputWrapper}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput]}
+              placeholder="Enter password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              placeholderTextColor="#666"
+            />
+            <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              {showPassword ? <EyeOff width={24} height={24} /> : <Eye width={24} height={24} />}
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.rememberContainer}>
+          <Checkbox
+            value={rememberMe}
+            onValueChange={setRememberMe}
+            color={rememberMe ? '#FF0000' : undefined}
+            style={styles.checkbox}
+          />
+          <Text style={styles.rememberText}>Remember Me</Text>
+        </View>
+
+        <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+          <ArrowRight width={24} height={24} fill="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  logoContainer: {
+    backgroundColor: '#FF0000',
+    padding: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 316,
+  },
+  logo: {
+    width: '60%',
+    height: 120,
+  },
+  formContainer: {
+    padding: 24,
+    flex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+    marginBottom: 32,
+    marginTop: 20,
+  },
+  inputWrapper: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 16,
+    color: '#000000',
+    marginBottom: 8,
+    textAlign: 'center',
+    fontWeight: '800',
+  },
+  inputContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  input: {
+    padding: 16,
+    fontSize: 16,
+    color: '#000',
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+  },
+  rememberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  checkbox: {
+    marginRight: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#666',
+  },
+  rememberText: {
+    fontSize: 16,
+    color: '#000000FF',
+    fontWeight: '500',
+  },
+  signInButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF0000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginTop: 40,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+}); 
