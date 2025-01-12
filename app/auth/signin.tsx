@@ -1,10 +1,10 @@
 import { View, Text, StyleSheet, Image, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useState, useRef } from 'react';
 import { router } from 'expo-router';
-import Checkbox from 'expo-checkbox';
 import ArrowRight from '../../assets/icons/ArrowRight';
 import CustomTextInput from '../../components/ui/CustomTextInput';
 import CustomButton from '../../components/ui/CustomButton';
+import CustomCheckbox from '../../components/ui/CustomCheckbox';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -69,15 +69,11 @@ export default function SignIn() {
               onFocus={() => handleFocus(200)}
             />
 
-            <View style={styles.rememberContainer}>
-              <Checkbox
-                value={rememberMe}
-                onValueChange={setRememberMe}
-                color={rememberMe ? '#FF0000' : undefined}
-                style={styles.checkbox}
-              />
-              <Text style={styles.rememberText}>Remember Me</Text>
-            </View>
+            <CustomCheckbox
+              label="Remember Me"
+              value={rememberMe}
+              onValueChange={setRememberMe}
+            />
 
             <CustomButton 
               onPress={() => {
