@@ -1,15 +1,14 @@
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, Image, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useState, useRef } from 'react';
 import { router } from 'expo-router';
 import Checkbox from 'expo-checkbox';
-import Eye from '../assets/icons/Eye';
-import EyeOff from '../assets/icons/EyeOff';
-import ArrowRight from '../assets/icons/ArrowRight';
+import ArrowRight from '../../assets/icons/ArrowRight';
+import CustomTextInput from '../../components/ui/CustomTextInput';
+import CustomButton from '../../components/ui/CustomButton';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -33,7 +32,7 @@ export default function SignIn() {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/images/yello_logo.png')}
+          source={require('../../assets/images/yello_logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -53,39 +52,22 @@ export default function SignIn() {
           <View style={styles.formContainer}>
             <Text style={styles.title}>Please Enter Credentials</Text>
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Username</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter username"
-                  value={username}
-                  onChangeText={setUsername}
-                  autoCapitalize="none"
-                  placeholderTextColor="#666"
-                  onFocus={() => handleFocus(100)}
-                />
-              </View>
-            </View>
+            <CustomTextInput
+              label="Username"
+              value={username}
+              onChangeText={setUsername}
+              placeholder="Enter username"
+              onFocus={() => handleFocus(100)}
+            />
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, styles.passwordInput]}
-                  placeholder="Enter password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  placeholderTextColor="#666"
-                  onFocus={() => handleFocus(200)}
-                />
-                <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                  {showPassword ? <EyeOff width={24} height={24} /> : <Eye width={24} height={24} />}
-                </Pressable>
-              </View>
-            </View>
+            <CustomTextInput
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter password"
+              isPassword
+              onFocus={() => handleFocus(200)}
+            />
 
             <View style={styles.rememberContainer}>
               <Checkbox
@@ -97,15 +79,14 @@ export default function SignIn() {
               <Text style={styles.rememberText}>Remember Me</Text>
             </View>
 
-            <TouchableOpacity 
-              style={styles.signInButton} 
+            <CustomButton 
               onPress={() => {
                 Keyboard.dismiss();
                 handleSignIn();
               }}
             >
               <ArrowRight width={24} height={24} fill="#FFFFFF" />
-            </TouchableOpacity>
+            </CustomButton>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
