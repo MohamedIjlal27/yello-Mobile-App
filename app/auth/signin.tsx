@@ -13,12 +13,7 @@ export default function SignIn() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleSignIn = () => {
-    if(username === 'admin' && password === 'admin'){
-       // router.push('/home');
-       console.log('Sign in:', { username, password, rememberMe });
-    }else{
-        Alert.alert('Invalid credentials');
-    }
+    router.push('/home/HomeScreen');
   };
 
   const handleFocus = (y: number) => {
