@@ -1,5 +1,5 @@
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native';
-import { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { useState, useRef } from 'react';
 import { router } from 'expo-router';
 import Checkbox from 'expo-checkbox';
 import Eye from '../assets/icons/Eye';
@@ -11,10 +11,22 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const handleSignIn = () => {
-    // Handle sign in logic here
-    console.log('Sign in:', { username, password, rememberMe });
+    if(username === 'admin' && password === 'admin'){
+       // router.push('/home');
+       console.log('Sign in:', { username, password, rememberMe });
+    }else{
+        Alert.alert('Invalid credentials');
+    }
+  };
+
+  const handleFocus = (y: number) => {
+    scrollViewRef.current?.scrollTo({
+      y,
+      animated: true,
+    });
   };
 
   return (
@@ -27,55 +39,76 @@ export default function SignIn() {
         />
       </View>
 
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Please Enter Credentials</Text>
+      <KeyboardAvoidingView 
+        style={styles.formSection}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Please Enter Credentials</Text>
 
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Username</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter username"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              placeholderTextColor="#666"
-            />
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Username</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter username"
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                  placeholderTextColor="#666"
+                  onFocus={() => handleFocus(100)}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="Enter password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  placeholderTextColor="#666"
+                  onFocus={() => handleFocus(200)}
+                />
+                <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                  {showPassword ? <EyeOff width={24} height={24} /> : <Eye width={24} height={24} />}
+                </Pressable>
+              </View>
+            </View>
+
+            <View style={styles.rememberContainer}>
+              <Checkbox
+                value={rememberMe}
+                onValueChange={setRememberMe}
+                color={rememberMe ? '#FF0000' : undefined}
+                style={styles.checkbox}
+              />
+              <Text style={styles.rememberText}>Remember Me</Text>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.signInButton} 
+              onPress={() => {
+                Keyboard.dismiss();
+                handleSignIn();
+              }}
+            >
+              <ArrowRight width={24} height={24} fill="#FFFFFF" />
+            </TouchableOpacity>
           </View>
-        </View>
-
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, styles.passwordInput]}
-              placeholder="Enter password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              placeholderTextColor="#666"
-            />
-            <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              {showPassword ? <EyeOff width={24} height={24} /> : <Eye width={24} height={24} />}
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.rememberContainer}>
-          <Checkbox
-            value={rememberMe}
-            onValueChange={setRememberMe}
-            color={rememberMe ? '#FF0000' : undefined}
-            style={styles.checkbox}
-          />
-          <Text style={styles.rememberText}>Remember Me</Text>
-        </View>
-
-        <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
-          <ArrowRight width={24} height={24} fill="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -93,14 +126,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 316,
+    zIndex: 1,
   },
   logo: {
     width: '60%',
     height: 120,
   },
+  formSection: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   formContainer: {
     padding: 24,
-    flex: 1,
+    paddingTop: 0,
   },
   title: {
     fontSize: 24,
