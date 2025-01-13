@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import MenuItem from '../components/MenuItem';
-import ProfileSection from '../components/ProfileSection';
+import MenuItem from '../../components/ui/MenuItem';
+import ProfileSection from '../../components/ui/ProfileSection';
 
 export default function HomeScreen() {
   return (
