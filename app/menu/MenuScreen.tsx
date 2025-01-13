@@ -1,17 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import MenuItem from '../../components/ui/MenuItem';
-import ProfileSection from '../../components/ui/ProfileSection';
 
 export default function MenuScreen() {
   return (
-    <ScrollView style={styles.container}>
-      <ProfileSection
-        name="Charith Madhuranga"
-        role="Cash Collector"
-        lastUpdated="Last updated at 09-Jan-25 09:46 AM"
-      />
-
+    <View style={styles.container}>
       {/* Menu Grid */}
       <View style={styles.menuGrid}>
         <MenuItem 
@@ -55,7 +48,7 @@ export default function MenuScreen() {
           bottomText="Upload"
         />
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
