@@ -1,10 +1,16 @@
 import * as React from "react";
 import Svg, { Path } from "react-native-svg";
 const SvgArrowRight = (props) => (
-  <Svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} {...props}>
+  <Svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24"
+    width={24} 
+    height={24} 
+    {...props}
+  >
     <Path
-      fill="#FFF"
-      d="m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"
+      fill={props.fill}
+      d="M12.293 5.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L16.586 13H5a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
     />
   </Svg>
 );
