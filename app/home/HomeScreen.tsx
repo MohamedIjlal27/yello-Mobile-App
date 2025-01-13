@@ -1,73 +1,80 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import MenuItem from '../../components/ui/MenuItem';
-import ProfileSection from '../../components/ui/ProfileSection';
+import { StyleSheet, View, ScrollView, Dimensions } from 'react-native'
+import React, { useState } from 'react'
+import MenuScreen from '../menu/MenuScreen'
+import CollectionDashboard from '../dashboard/CollectionDashboard'
+import InvoiceDashboard from '../dashboard/InvoiceDashboard'
+
+const { width } = Dimensions.get('window')
 
 export default function HomeScreen() {
-  return (
-    <ScrollView style={styles.container}>
-      <ProfileSection
-        name="Charith Madhuranga"
-        role="Cash Collector"
-        lastUpdated="Last updated at 09-Jan-25 09:46 AM"
-      />
+  const [currentPage, setCurrentPage] = useState(1)
 
-      {/* Menu Grid */}
-      <View style={styles.menuGrid}>
-        <MenuItem 
-          iconImage={require('../../assets/icons/invoiceReceipt.png')} 
-          topText="Invoice"
-          bottomText="Receipts"
-        />
-        <MenuItem 
-          iconImage={require('../../assets/icons/cancelledInvoice.png')} 
-          topText="Cancelled"
-          bottomText="Invoices"
-        />
-        <MenuItem 
-          iconImage={require('../../assets/icons/creditInvoice.png')} 
-          topText="Credit"
-          bottomText="Invoices"
-        />
-        <MenuItem 
-          iconImage={require('../../assets/icons/discountAdjustment.png')} 
-          topText="Discount"
-          bottomText="Adjustments"
-        />
-        <MenuItem 
-          iconImage={require('../../assets/icons/returnCheq.png')} 
-          topText="Returned"
-          bottomText="Cheques"
-        />
-        <MenuItem 
-          iconImage={require('../../assets/icons/sendCheqBack.png')} 
-          topText="Sent Back"
-          bottomText="Cheques"
-        />
-        <MenuItem 
-          iconImage={require('../../assets/icons/collectionSummary.png')} 
-          topText="Collection"
-          bottomText="Summary"
-        />
-        <MenuItem 
-          iconImage={require('../../assets/icons/imageUpload.png')} 
-          topText="Image"
-          bottomText="Upload"
-        />
+  const handleScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x
+    const page = Math.round(offsetX / width)
+    setCurrentPage(page)
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        contentOffset={{ x: width, y: 0 }}
+        onScroll={handleScroll}
+        style={styles.scrollView}
+      >
+        <View style={styles.screen}>
+          <InvoiceDashboard />
+        </View>
+        <View style={styles.screen}>
+          <MenuScreen />
+        </View>
+        <View style={styles.screen}>
+          <CollectionDashboard />
+        </View>
+      </ScrollView>
+      
+      <View style={styles.paginationDots}>
+        {[0, 1, 2].map((index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              { backgroundColor: currentPage === index ? '#FF0000' : '#D3D3D3' }
+            ]}
+          />
+        ))}
       </View>
-    </ScrollView>
-  );
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFFFF',
   },
-  menuGrid: {
+  scrollView: {
+    flex: 1,
+  },
+  screen: {
+    width: width,
+    flex: 1,
+  },
+  paginationDots: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 8,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 10,
+    width: '100%',
   },
-});
+  dot: {
+    width: 15,
+    height: 15,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  }
+})
