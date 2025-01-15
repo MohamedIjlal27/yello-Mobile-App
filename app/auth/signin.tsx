@@ -76,7 +76,7 @@ export default function SignIn() {
                 handleSignIn();
               }}
             >
-              <ArrowRight width={24} height={24} fill="#FFFFFF" />
+              <ArrowRight width={22} height={22} fill="#FF0000" />
             </CustomButton>
           </View>
         </ScrollView>
