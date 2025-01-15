@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+    marginTop: -20,
   },
   scrollView: {
     flex: 1,
