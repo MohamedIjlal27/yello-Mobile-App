@@ -1,14 +1,16 @@
-import { StyleSheet, View, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
+import { StyleSheet, View, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import MenuScreen from '../menu/MenuScreen'
 import CollectionDashboard from '../dashboard/CollectionDashboard'
 import InvoiceDashboard from '../dashboard/InvoiceDashboard'
 import ProfileSection from '../../components/ui/ProfileSection'
+import ProfileModal from '../../components/modals/ProfileModal'
 
 const { width } = Dimensions.get('window')
 
 export default function HomeScreen() {
   const [currentPage, setCurrentPage] = useState(1)
+  const [isProfileModalVisible, setIsProfileModalVisible] = useState(false)
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x
@@ -19,10 +21,20 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* Static Profile Section */}
-      <ProfileSection
+      <TouchableOpacity onPress={() => setIsProfileModalVisible(true)}>
+        <ProfileSection
+          name="Charith Madhuranga"
+          role="Cash Collector"
+          lastUpdated="Last updated at 09-Jan-25 09:46 AM"
+        />
+      </TouchableOpacity>
+
+      {/* Profile Modal */}
+      <ProfileModal
+        visible={isProfileModalVisible}
+        onClose={() => setIsProfileModalVisible(false)}
         name="Charith Madhuranga"
         role="Cash Collector"
-        lastUpdated="Last updated at 09-Jan-25 09:46 AM"
       />
 
       {/* Scrollable Content */}
