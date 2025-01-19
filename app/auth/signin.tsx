@@ -57,16 +57,41 @@ export default function SignIn() {
     }
   };
 
-  const handleSignIn = () => {
-    router.push('/home/HomeScreen');
-  };
-
   const handleLogin = async () => {
-    // Your existing login logic here
-    
-    // After successful login, check if we should show biometric prompt
-    if (isBiometricSupported && isFirstLogin) {
-      setShowBiometricPrompt(true);
+    const user = {
+      username: username,
+      password: password,
+    }
+    try {
+      // Check if username and password are provided
+      if (!user.username || !user.password) {
+        Alert.alert('Error', 'Please enter both username and password');
+        return;
+      }
+
+      // Here you would typically validate credentials with your backend
+      // For now, we'll simulate a successful login
+      const loginSuccess = true; // Replace with actual login validation
+
+      if (loginSuccess) {
+        // If it's first login and device supports biometrics, show enrollment prompt
+        if (isBiometricSupported && isFirstLogin) {
+          setShowBiometricPrompt(true);
+        } else {
+          // Navigate to home screen
+          router.replace('/home/HomeScreen');
+        }
+
+        // Store credentials if remember me is checked
+        if (rememberMe) {
+          await AsyncStorage.setItem('rememberedUsername', username);
+        }
+      } else {
+        Alert.alert('Error', 'Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'An error occurred during login');
     }
   };
 
@@ -83,6 +108,11 @@ export default function SignIn() {
     try {
       const success = await authenticateWithBiometric();
       if (success) {
+        // Get stored username if available
+        const rememberedUsername = await AsyncStorage.getItem('rememberedUsername');
+        if (rememberedUsername) {
+          setUsername(rememberedUsername);
+        }
         // Navigate to home screen
         router.replace('/home/HomeScreen');
       }
@@ -94,6 +124,23 @@ export default function SignIn() {
       );
     }
   };
+
+  // Load remembered username on component mount
+  useEffect(() => {
+    const loadRememberedUsername = async () => {
+      try {
+        const rememberedUsername = await AsyncStorage.getItem('rememberedUsername');
+        if (rememberedUsername) {
+          setUsername(rememberedUsername);
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.error('Error loading remembered username:', error);
+      }
+    };
+
+    loadRememberedUsername();
+  }, []);
 
   const handleFocus = (y: number) => {
     scrollViewRef.current?.scrollTo({

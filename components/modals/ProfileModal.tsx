@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, Pressable, Alert } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useBiometrics } from '../../hooks/useBiometrics';
 
 interface ProfileModalProps {
   visible: boolean;
@@ -12,14 +14,48 @@ interface ProfileModalProps {
 const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
   const [isBiometricsEnabled, setIsBiometricsEnabled] = useState(false);
   const [hasBiometricHardware, setHasBiometricHardware] = useState(false);
+  const { enableBiometric, clearBiometricData } = useBiometrics();
 
   useEffect(() => {
-    checkBiometricSupport();
-  }, []);
+    if (visible) {
+      checkBiometricSupport();
+      checkBiometricStatus();
+    }
+  }, [visible]);
 
   const checkBiometricSupport = async () => {
     const compatible = await LocalAuthentication.hasHardwareAsync();
     setHasBiometricHardware(compatible);
+  };
+
+  const checkBiometricStatus = async () => {
+    try {
+      const enabled = await AsyncStorage.getItem('biometricEnabled');
+      setIsBiometricsEnabled(!!enabled);
+    } catch (error) {
+      console.error('Error checking biometric status:', error);
+    }
+  };
+
+  const handleBiometricToggle = async () => {
+    try {
+      if (!isBiometricsEnabled) {
+        // Enable biometrics
+        const success = await enableBiometric();
+        if (success) {
+          setIsBiometricsEnabled(true);
+          Alert.alert('Success', 'Biometric login has been enabled');
+        }
+      } else {
+        // Disable biometrics
+        await clearBiometricData();
+        setIsBiometricsEnabled(false);
+        Alert.alert('Success', 'Biometric login has been disabled');
+      }
+    } catch (error) {
+      console.error('Error toggling biometrics:', error);
+      Alert.alert('Error', 'Failed to update biometric settings');
+    }
   };
 
   return (
@@ -57,7 +93,7 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
             {hasBiometricHardware && (
               <TouchableOpacity 
                 style={styles.biometricsContainer}
-                onPress={() => setIsBiometricsEnabled(!isBiometricsEnabled)}
+                onPress={handleBiometricToggle}
               >
                 <View style={styles.checkbox}>
                   {isBiometricsEnabled && (
