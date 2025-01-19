@@ -61,10 +61,11 @@ export const useBiometrics = () => {
 
   const clearBiometricData = async () => {
     try {
-      // Clear biometric related data from AsyncStorage
+      // Clear all biometric and authentication related data from AsyncStorage
       await AsyncStorage.multiRemove([
         'biometricEnabled',
-        'hasLoggedIn'
+        'hasLoggedIn',
+        'rememberedUsername'  // Also clear remembered username when disabling biometrics
       ]);
       
       // If you have any active biometric enrollment, clear it

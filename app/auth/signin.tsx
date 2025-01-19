@@ -100,8 +100,12 @@ export default function SignIn() {
     if (success) {
       // Biometric enrollment successful
       console.log('Biometric login enabled successfully');
+      // Close the modal and navigate to home screen
+      setShowBiometricPrompt(false);
+      router.replace('/home/HomeScreen');
+    } else {
+      setShowBiometricPrompt(false);
     }
-    setShowBiometricPrompt(false);
   };
 
   const handleBiometricLogin = async () => {

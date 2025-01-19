@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, Pressable, Aler
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBiometrics } from '../../hooks/useBiometrics';
+import { router } from 'expo-router';
 
 interface ProfileModalProps {
   visible: boolean;
@@ -37,6 +38,39 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      // Show confirmation dialog
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: async () => {
+              // Clear all user data including biometrics
+              await clearBiometricData();
+              
+              // Close the profile modal
+              onClose();
+              
+              // Navigate back to sign-in screen
+              router.replace('/auth/Signin');
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error during logout:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
   const handleBiometricToggle = async () => {
     try {
       if (!isBiometricsEnabled) {
@@ -47,10 +81,27 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
           Alert.alert('Success', 'Biometric login has been enabled');
         }
       } else {
-        // Disable biometrics
-        await clearBiometricData();
-        setIsBiometricsEnabled(false);
-        Alert.alert('Success', 'Biometric login has been disabled');
+        // Show confirmation before disabling
+        Alert.alert(
+          'Disable Biometric Login',
+          'This will remove your stored biometric data and you will need to set it up again if you want to use it in the future. Are you sure?',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel'
+            },
+            {
+              text: 'Disable',
+              style: 'destructive',
+              onPress: async () => {
+                // Disable biometrics
+                await clearBiometricData();
+                setIsBiometricsEnabled(false);
+                Alert.alert('Success', 'Biometric login has been disabled and all related data has been cleared');
+              }
+            }
+          ]
+        );
       }
     } catch (error) {
       console.error('Error toggling biometrics:', error);
@@ -105,7 +156,10 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
             )}
 
             {/* Logout Button */}
-            <TouchableOpacity style={styles.logoutButton}>
+            <TouchableOpacity 
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
               <Image
                 source={require('../../assets/icons/logout.png')}
                 style={styles.logoutIcon}
