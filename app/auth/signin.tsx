@@ -9,7 +9,7 @@ import { useBiometrics } from '../../hooks/useBiometrics';
 import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setAuthenticated } from '../../utils/authStorage';
+import { setAuthenticated, isAuthenticated } from '../../utils/authStorage';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -27,14 +27,21 @@ export default function SignIn() {
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
 
   useEffect(() => {
+    checkAuthStatus();
     checkBiometricEnabled();
     
     // Add cleanup function
     return () => {
-      // This will be called when the component unmounts
       handleCleanup();
     };
   }, []);
+
+  const checkAuthStatus = async () => {
+    const authState = await isAuthenticated();
+    if (authState) {
+      router.replace('/home/HomeScreen');
+    }
+  };
 
   const handleCleanup = async () => {
     try {
