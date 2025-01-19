@@ -1,19 +1,98 @@
-import { View, Text, StyleSheet, Image, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
-import { useState, useRef } from 'react';
+import { View, Text, StyleSheet, Image, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
 import { router } from 'expo-router';
 import ArrowRight from '../../assets/icons/ArrowRight';
 import CustomTextInput from '../../components/ui/CustomTextInput';
 import CustomButton from '../../components/ui/CustomButton';
 import CustomCheckbox from '../../components/ui/CustomCheckbox';
+import { useBiometrics } from '../../hooks/useBiometrics';
+import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const { 
+    isBiometricSupported, 
+    isFirstLogin, 
+    enableBiometric, 
+    authenticateWithBiometric,
+    clearBiometricData 
+  } = useBiometrics();
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+
+  useEffect(() => {
+    checkBiometricEnabled();
+    
+    // Add cleanup function
+    return () => {
+      // This will be called when the component unmounts
+      handleCleanup();
+    };
+  }, []);
+
+  const handleCleanup = async () => {
+    try {
+      // Check if app is being uninstalled or if we need to clear data
+      const shouldClearData = await AsyncStorage.getItem('appUninstalling');
+      if (shouldClearData === 'true') {
+        await clearBiometricData();
+        await AsyncStorage.removeItem('appUninstalling');
+      }
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+    }
+  };
+
+  const checkBiometricEnabled = async () => {
+    try {
+      const enabled = await AsyncStorage.getItem('biometricEnabled');
+      setIsBiometricEnabled(!!enabled);
+    } catch (error) {
+      console.error('Error checking biometric status:', error);
+    }
+  };
 
   const handleSignIn = () => {
     router.push('/home/HomeScreen');
+  };
+
+  const handleLogin = async () => {
+    // Your existing login logic here
+    
+    // After successful login, check if we should show biometric prompt
+    if (isBiometricSupported && isFirstLogin) {
+      setShowBiometricPrompt(true);
+    }
+  };
+
+  const handleEnableBiometric = async () => {
+    const success = await enableBiometric();
+    if (success) {
+      // Biometric enrollment successful
+      console.log('Biometric login enabled successfully');
+    }
+    setShowBiometricPrompt(false);
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      const success = await authenticateWithBiometric();
+      if (success) {
+        // Navigate to home screen
+        router.replace('/home/HomeScreen');
+      }
+    } catch (error) {
+      console.error('Error during biometric login:', error);
+      Alert.alert(
+        'Authentication Failed',
+        'Could not authenticate with fingerprint. Please try again or use your credentials.'
+      );
+    }
   };
 
   const handleFocus = (y: number) => {
@@ -73,14 +152,29 @@ export default function SignIn() {
             <CustomButton 
               onPress={() => {
                 Keyboard.dismiss();
-                handleSignIn();
+                handleLogin();
               }}
             >
               <ArrowRight width={22} height={22} fill="#FF0000" />
             </CustomButton>
+
+            {isBiometricSupported && isBiometricEnabled && (
+              <TouchableOpacity
+                style={styles.biometricButton}
+                onPress={handleBiometricLogin}
+              >
+                <Ionicons name="finger-print" size={24} color="#007AFF" />
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <BiometricEnrollModal
+        visible={showBiometricPrompt}
+        onClose={() => setShowBiometricPrompt(false)}
+        onEnableBiometric={handleEnableBiometric}
+      />
     </View>
   );
 }
@@ -190,5 +284,12 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+  },
+  biometricButton: {
+    alignSelf: 'center',
+    padding: 15,
+    borderRadius: 30,
+    backgroundColor: '#F5F5F5',
+    marginTop: 20,
   },
 }); 
