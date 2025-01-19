@@ -9,10 +9,11 @@ interface MenuItemProps {
   topText?: string;
   bottomText?: string;
   subtitle?: string;
+  onPress?: () => void;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ icon, iconImage, title, topText, bottomText, subtitle }) => (
-  <TouchableOpacity style={styles.menuItem}>
+const MenuItem: React.FC<MenuItemProps> = ({ icon, iconImage, title, topText, bottomText, subtitle, onPress }) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     {iconImage ? (
       <Image source={iconImage} style={styles.menuIcon} />
     ) : (
