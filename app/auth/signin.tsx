@@ -9,12 +9,14 @@ import { useBiometrics } from '../../hooks/useBiometrics';
 import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setAuthenticated, isAuthenticated } from '../../utils/authStorage';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { loginUser, setBiometricEnabled, setRememberMe } from '../../store/slices/authSlice';
 
 export default function SignIn() {
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, isBiometricEnabled, rememberedUsername, rememberMe } = useAppSelector((state) => state.auth);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const { 
@@ -24,84 +26,42 @@ export default function SignIn() {
     authenticateWithBiometric,
     clearBiometricData 
   } = useBiometrics();
-  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
 
   useEffect(() => {
-    checkAuthStatus();
-    checkBiometricEnabled();
-    
-    // Add cleanup function
-    return () => {
-      handleCleanup();
-    };
-  }, []);
-
-  const checkAuthStatus = async () => {
-    const authState = await isAuthenticated();
-    if (authState) {
+    if (isAuthenticated) {
       router.replace('/home/HomeScreen');
     }
-  };
+  }, [isAuthenticated]);
 
-  const handleCleanup = async () => {
-    try {
-      // Check if app is being uninstalled or if we need to clear data
-      const shouldClearData = await AsyncStorage.getItem('appUninstalling');
-      if (shouldClearData === 'true') {
-        await clearBiometricData();
-        await AsyncStorage.removeItem('appUninstalling');
-      }
-    } catch (error) {
-      console.error('Error during cleanup:', error);
+  useEffect(() => {
+    if (rememberedUsername) {
+      setUsername(rememberedUsername);
     }
-  };
-
-  const checkBiometricEnabled = async () => {
-    try {
-      const enabled = await AsyncStorage.getItem('biometricEnabled');
-      setIsBiometricEnabled(!!enabled);
-    } catch (error) {
-      console.error('Error checking biometric status:', error);
-    }
-  };
+  }, [rememberedUsername]);
 
   const handleLogin = async () => {
-    const user = {
-      username: username,
-      password: password,
-    }
     try {
-      // Check if username and password are provided
-      if (!user.username || !user.password) {
+      if (!username || !password) {
         Alert.alert('Error', 'Please enter both username and password');
         return;
       }
 
       // Here you would typically validate credentials with your backend
-      // For now, we'll simulate a successful login
       const loginSuccess = true; // Replace with actual login validation
 
       if (loginSuccess) {
-        // Set authenticated state
-        await setAuthenticated({
-          username: user.username,
+        const userData = {
+          username: username,
           role: 'Cash Collector', // This should come from your backend
-        });
+        };
 
-        // Store credentials if remember me is checked
-        if (rememberMe) {
-          await AsyncStorage.setItem('rememberedUsername', username);
-        }
+        await dispatch(loginUser(userData, rememberMe));
 
-        // Check if it's first login and device supports biometrics
         const hasLoggedIn = await AsyncStorage.getItem('hasLoggedIn');
-        const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
         
-        if (!hasLoggedIn && isBiometricSupported && !biometricEnabled) {
-          // First time login, show biometric enrollment
+        if (!hasLoggedIn && isBiometricSupported && !isBiometricEnabled) {
           setShowBiometricPrompt(true);
         } else {
-          // Not first login or biometrics already set up, proceed to home
           router.replace('/home/HomeScreen');
         }
       } else {
@@ -116,14 +76,11 @@ export default function SignIn() {
   const handleEnableBiometric = async () => {
     const success = await enableBiometric();
     if (success) {
-      // Set hasLoggedIn to true after successful biometric enrollment
       await AsyncStorage.setItem('hasLoggedIn', 'true');
-      
-      // Close the modal and navigate to home screen
+      dispatch(setBiometricEnabled(true));
       setShowBiometricPrompt(false);
       router.replace('/home/HomeScreen');
     } else {
-      // If user declines biometric enrollment, still mark as logged in
       await AsyncStorage.setItem('hasLoggedIn', 'true');
       setShowBiometricPrompt(false);
       router.replace('/home/HomeScreen');
@@ -133,18 +90,12 @@ export default function SignIn() {
   const handleBiometricLogin = async () => {
     try {
       const success = await authenticateWithBiometric();
-      if (success) {
-        // Get stored username if available
-        const rememberedUsername = await AsyncStorage.getItem('rememberedUsername');
-        if (rememberedUsername) {
-          setUsername(rememberedUsername);
-          // Set authenticated state
-          await setAuthenticated({
-            username: rememberedUsername,
-            role: 'Cash Collector', // This should come from your backend
-          });
-        }
-        // Navigate to home screen
+      if (success && rememberedUsername) {
+        const userData = {
+          username: rememberedUsername,
+          role: 'Cash Collector', // This should come from your backend
+        };
+        await dispatch(loginUser(userData, true));
         router.replace('/home/HomeScreen');
       }
     } catch (error) {
@@ -155,23 +106,6 @@ export default function SignIn() {
       );
     }
   };
-
-  // Load remembered username on component mount
-  useEffect(() => {
-    const loadRememberedUsername = async () => {
-      try {
-        const rememberedUsername = await AsyncStorage.getItem('rememberedUsername');
-        if (rememberedUsername) {
-          setUsername(rememberedUsername);
-          setRememberMe(true);
-        }
-      } catch (error) {
-        console.error('Error loading remembered username:', error);
-      }
-    };
-
-    loadRememberedUsername();
-  }, []);
 
   const handleFocus = (y: number) => {
     scrollViewRef.current?.scrollTo({
@@ -224,7 +158,7 @@ export default function SignIn() {
             <CustomCheckbox
               label="Remember Me"
               value={rememberMe}
-              onValueChange={setRememberMe}
+              onValueChange={(value) => dispatch(setRememberMe(value))}
             />
 
             <CustomButton 
