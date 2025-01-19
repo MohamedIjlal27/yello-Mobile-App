@@ -44,6 +44,9 @@ export default function InvoiceCard({
         </TouchableOpacity>
       </View>
 
+      {/* Separator Line */}
+      <View style={styles.separator} />
+
       {/* Invoice Info Section */}
       <View style={styles.invoiceSection}>
         <View style={styles.invoiceInfo}>
@@ -57,12 +60,18 @@ export default function InvoiceCard({
               <Text style={styles.date}>{date}</Text>
             </View>
           </View>
+          <View style={styles.verticalSeparator} />
           <View style={styles.amountSection}>
             <Text style={styles.currency}>LKR</Text>
             <Text style={styles.amount}>{amount.toFixed(2)}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={onPay} style={styles.payButton}>
+          <Image 
+            source={require('../../assets/icons/pay.png')}
+            style={styles.payIcon}
+            resizeMode="contain"
+          />
           <Text style={styles.payText}>P A Y</Text>
         </TouchableOpacity>
       </View>
@@ -105,18 +114,21 @@ const styles = StyleSheet.create({
   },
   shopName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '900',
     color: '#324F5D',
+    fontFamily: 'Assistant',
   },
   address: {
     fontSize: 14,
-    color: '#666666',
+    color: '#000000',
+    fontFamily: 'Assistant',
+    fontWeight: '500',
   },
   locateButton: {
     backgroundColor: '#F5F5F5',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -141,6 +153,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginRight: 16,
+    height: 50,
   },
   invoiceLeft: {
     flexDirection: 'row',
@@ -152,35 +165,64 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   invoiceNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '900',
     color: '#000000',
+    fontFamily: 'Assistant',
   },
   date: {
     fontSize: 14,
-    color: '#666666',
+    color: '#000000',
+    fontFamily: 'Assistant',
+    fontWeight: '500',
   },
   amountSection: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
   },
   currency: {
-    fontSize: 14,
-    color: '#666666',
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500',
+    fontFamily: 'Assistant',
   },
   amount: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '900',
     color: '#000000',
+    fontFamily: 'Assistant',
   },
   payButton: {
     backgroundColor: '#FF0000',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  payIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+    tintColor: '#FFFFFF',
   },
   payText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginVertical: 5,
+    width: '67%',
+  },
+  verticalSeparator: {
+    width: 1,
+    height: '100%',
+    backgroundColor: '#E5E5E5',
+    marginHorizontal: 16,
   },
 }); 
