@@ -81,7 +81,7 @@ export default function InvoiceCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F7F7F7FF',
     borderRadius: 10,
     padding: 16,
     marginHorizontal: 16,
