@@ -59,20 +59,26 @@ export const useBiometrics = () => {
     }
   };
 
-  const clearBiometricData = async () => {
+  const clearBiometricData = async (preserveBiometric: boolean = false) => {
     try {
-      // Clear all biometric and authentication related data from AsyncStorage
-      await AsyncStorage.multiRemove([
-        'biometricEnabled',
-        'hasLoggedIn',
-        'rememberedUsername'  // Also clear remembered username when disabling biometrics
-      ]);
-      
-      // If you have any active biometric enrollment, clear it
-      if (await LocalAuthentication.isEnrolledAsync()) {
-        // Note: We can't programmatically remove fingerprints, 
-        // but we can disable our app's access to them
-        await LocalAuthentication.cancelAuthenticate();
+      // If preserveBiometric is true, only clear session-related data
+      if (preserveBiometric) {
+        await AsyncStorage.multiRemove([
+          'rememberedUsername',
+          'hasLoggedIn'
+        ]);
+      } else {
+        // Clear all biometric and authentication related data
+        await AsyncStorage.multiRemove([
+          'biometricEnabled',
+          'hasLoggedIn',
+          'rememberedUsername'
+        ]);
+        
+        // If you have any active biometric enrollment, clear it
+        if (await LocalAuthentication.isEnrolledAsync()) {
+          await LocalAuthentication.cancelAuthenticate();
+        }
       }
       
       return true;

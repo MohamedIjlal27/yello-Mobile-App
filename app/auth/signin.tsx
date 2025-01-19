@@ -9,6 +9,7 @@ import { useBiometrics } from '../../hooks/useBiometrics';
 import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setAuthenticated } from '../../utils/authStorage';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -74,17 +75,27 @@ export default function SignIn() {
       const loginSuccess = true; // Replace with actual login validation
 
       if (loginSuccess) {
-        // If it's first login and device supports biometrics, show enrollment prompt
-        if (isBiometricSupported && isFirstLogin) {
-          setShowBiometricPrompt(true);
-        } else {
-          // Navigate to home screen
-          router.replace('/home/HomeScreen');
-        }
+        // Set authenticated state
+        await setAuthenticated({
+          username: user.username,
+          role: 'Cash Collector', // This should come from your backend
+        });
 
         // Store credentials if remember me is checked
         if (rememberMe) {
           await AsyncStorage.setItem('rememberedUsername', username);
+        }
+
+        // Check if it's first login and device supports biometrics
+        const hasLoggedIn = await AsyncStorage.getItem('hasLoggedIn');
+        const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+        
+        if (!hasLoggedIn && isBiometricSupported && !biometricEnabled) {
+          // First time login, show biometric enrollment
+          setShowBiometricPrompt(true);
+        } else {
+          // Not first login or biometrics already set up, proceed to home
+          router.replace('/home/HomeScreen');
         }
       } else {
         Alert.alert('Error', 'Invalid credentials');
@@ -98,13 +109,17 @@ export default function SignIn() {
   const handleEnableBiometric = async () => {
     const success = await enableBiometric();
     if (success) {
-      // Biometric enrollment successful
-      console.log('Biometric login enabled successfully');
+      // Set hasLoggedIn to true after successful biometric enrollment
+      await AsyncStorage.setItem('hasLoggedIn', 'true');
+      
       // Close the modal and navigate to home screen
       setShowBiometricPrompt(false);
       router.replace('/home/HomeScreen');
     } else {
+      // If user declines biometric enrollment, still mark as logged in
+      await AsyncStorage.setItem('hasLoggedIn', 'true');
       setShowBiometricPrompt(false);
+      router.replace('/home/HomeScreen');
     }
   };
 
@@ -116,6 +131,11 @@ export default function SignIn() {
         const rememberedUsername = await AsyncStorage.getItem('rememberedUsername');
         if (rememberedUsername) {
           setUsername(rememberedUsername);
+          // Set authenticated state
+          await setAuthenticated({
+            username: rememberedUsername,
+            role: 'Cash Collector', // This should come from your backend
+          });
         }
         // Navigate to home screen
         router.replace('/home/HomeScreen');

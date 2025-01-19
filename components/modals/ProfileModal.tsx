@@ -4,6 +4,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBiometrics } from '../../hooks/useBiometrics';
 import { router } from 'expo-router';
+import { clearAuthentication } from '../../utils/authStorage';
 
 interface ProfileModalProps {
   visible: boolean;
@@ -53,8 +54,10 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
             text: 'Logout',
             style: 'destructive',
             onPress: async () => {
-              // Clear all user data including biometrics
-              await clearBiometricData();
+              // Clear user data but preserve biometric settings
+              await clearBiometricData(true);
+              // Clear authentication state
+              await clearAuthentication();
               
               // Close the profile modal
               onClose();
