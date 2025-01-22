@@ -20,14 +20,12 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Static Profile Section */}
-      <TouchableOpacity onPress={() => setIsProfileModalVisible(true)}>
-        <ProfileSection
-          name="Charith Madhuranga"
-          role="Cash Collector"
-          lastUpdated="Last updated at 09-Jan-25 09:46 AM"
-        />
-      </TouchableOpacity>
+      <ProfileSection
+        name="Charith Madhuranga"
+        role="Cash Collector"
+        lastUpdated="Last updated at 09-Jan-25 09:46 AM"
+        onAvatarPress={() => setIsProfileModalVisible(true)}
+      />
 
       {/* Profile Modal */}
       <ProfileModal

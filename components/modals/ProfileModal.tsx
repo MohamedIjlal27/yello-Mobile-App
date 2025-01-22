@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, Pressable, Alert } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useBiometrics } from '../../hooks/useBiometrics';
+import { router } from 'expo-router';
+import { clearAuthentication } from '../../utils/authStorage';
 
 interface ProfileModalProps {
   visible: boolean;
@@ -12,14 +16,100 @@ interface ProfileModalProps {
 const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
   const [isBiometricsEnabled, setIsBiometricsEnabled] = useState(false);
   const [hasBiometricHardware, setHasBiometricHardware] = useState(false);
+  const { enableBiometric, clearBiometricData } = useBiometrics();
 
   useEffect(() => {
-    checkBiometricSupport();
-  }, []);
+    if (visible) {
+      checkBiometricSupport();
+      checkBiometricStatus();
+    }
+  }, [visible]);
 
   const checkBiometricSupport = async () => {
     const compatible = await LocalAuthentication.hasHardwareAsync();
     setHasBiometricHardware(compatible);
+  };
+
+  const checkBiometricStatus = async () => {
+    try {
+      const enabled = await AsyncStorage.getItem('biometricEnabled');
+      setIsBiometricsEnabled(!!enabled);
+    } catch (error) {
+      console.error('Error checking biometric status:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Show confirmation dialog
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: async () => {
+              // Clear user data but preserve biometric settings
+              await clearBiometricData(true);
+              // Clear authentication state
+              await clearAuthentication();
+              
+              // Close the profile modal
+              onClose();
+              
+              // Navigate back to sign-in screen
+              router.replace('/auth/signin');
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error during logout:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
+  const handleBiometricToggle = async () => {
+    try {
+      if (!isBiometricsEnabled) {
+        // Enable biometrics
+        const success = await enableBiometric();
+        if (success) {
+          setIsBiometricsEnabled(true);
+          Alert.alert('Success', 'Biometric login has been enabled');
+        }
+      } else {
+        // Show confirmation before disabling
+        Alert.alert(
+          'Disable Biometric Login',
+          'This will remove your stored biometric data and you will need to set it up again if you want to use it in the future. Are you sure?',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel'
+            },
+            {
+              text: 'Disable',
+              style: 'destructive',
+              onPress: async () => {
+                // Disable biometrics
+                await clearBiometricData();
+                setIsBiometricsEnabled(false);
+                Alert.alert('Success', 'Biometric login has been disabled and all related data has been cleared');
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error toggling biometrics:', error);
+      Alert.alert('Error', 'Failed to update biometric settings');
+    }
   };
 
   return (
@@ -57,7 +147,7 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
             {hasBiometricHardware && (
               <TouchableOpacity 
                 style={styles.biometricsContainer}
-                onPress={() => setIsBiometricsEnabled(!isBiometricsEnabled)}
+                onPress={handleBiometricToggle}
               >
                 <View style={styles.checkbox}>
                   {isBiometricsEnabled && (
@@ -69,7 +159,10 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
             )}
 
             {/* Logout Button */}
-            <TouchableOpacity style={styles.logoutButton}>
+            <TouchableOpacity 
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
               <Image
                 source={require('../../assets/icons/logout.png')}
                 style={styles.logoutIcon}

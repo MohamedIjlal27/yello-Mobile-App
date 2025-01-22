@@ -1,8 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
 import MenuItem from '../../components/ui/MenuItem';
 
 export default function MenuScreen() {
+  const handleNavigation = (screen: string) => {
+    router.push(screen as any); // Type assertion needed for now
+  };
+
   return (
     <View style={styles.container}>
       {/* Menu Grid */}
@@ -11,41 +16,49 @@ export default function MenuScreen() {
           iconImage={require('../../assets/icons/invoiceReceipt.png')} 
           topText="Invoice"
           bottomText="Receipts"
+          onPress={() => handleNavigation('/(screens)/invoice/receipts')}
         />
         <MenuItem 
           iconImage={require('../../assets/icons/cancelledInvoice.png')} 
           topText="Cancelled"
           bottomText="Invoices"
+          onPress={() => handleNavigation('/(screens)/invoice/cancelled')}
         />
         <MenuItem 
           iconImage={require('../../assets/icons/creditInvoice.png')} 
           topText="Credit"
           bottomText="Invoices"
+          onPress={() => handleNavigation('/(screens)/invoice/credit')}
         />
         <MenuItem 
           iconImage={require('../../assets/icons/discountAdjustment.png')} 
           topText="Discount"
           bottomText="Adjustments"
+          onPress={() => handleNavigation('/(screens)/adjustments/discount')}
         />
         <MenuItem 
           iconImage={require('../../assets/icons/returnCheq.png')} 
           topText="Returned"
           bottomText="Cheques"
+          onPress={() => handleNavigation('/(screens)/cheques/returned')}
         />
         <MenuItem 
           iconImage={require('../../assets/icons/sendCheqBack.png')} 
           topText="Sent Back"
           bottomText="Cheques"
+          onPress={() => handleNavigation('/(screens)/cheques/sent-back')}
         />
         <MenuItem 
           iconImage={require('../../assets/icons/collectionSummary.png')} 
           topText="Collection"
           bottomText="Summary"
+          onPress={() => handleNavigation('/(screens)/collection/summary')}
         />
         <MenuItem 
           iconImage={require('../../assets/icons/imageUpload.png')} 
           topText="Image"
           bottomText="Upload"
+          onPress={() => handleNavigation('/(screens)/upload/image')}
         />
       </View>
     </View>
