@@ -1,22 +1,20 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { initializeAuth } from '../store/slices/authSlice';
+import { isAuthenticated, getUserData } from '../utils/authStorage';
 
 export default function Index() {
-
-  const dispatch = useAppDispatch();
-  const { isAuthenticated, userData } = useAppSelector((state) => state.auth);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
     const initialize = async () => {
-      await dispatch(initializeAuth());
+      const authStatus = await isAuthenticated();
+      setIsAuth(authStatus);
       setIsLoading(false);
     };
     initialize();
-  }, [dispatch]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -26,6 +24,5 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={isAuthenticated ? "/home/HomeScreen" : "/auth/signin"} />;
-
+  return <Redirect href={isAuth ? "/home/HomeScreen" : "/auth/signin"} />;
 } 
