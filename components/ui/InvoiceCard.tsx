@@ -7,8 +7,9 @@ interface InvoiceCardProps {
   invoiceNumber: string;
   date: string;
   amount: number;
-  onPay?: () => void;
-  onLocate?: () => void;
+  onPay: () => void;
+  onLocate: () => void;
+  onPress?: () => void;
 }
 
 export default function InvoiceCard({
@@ -18,10 +19,11 @@ export default function InvoiceCard({
   date,
   amount,
   onPay,
-  onLocate
+  onLocate,
+  onPress
 }: InvoiceCardProps) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity onPress={onPress} style={styles.card}>
       {/* Shop Info Section */}
       <View style={styles.shopSection}>
         <View style={styles.shopInfo}>
@@ -75,7 +77,7 @@ export default function InvoiceCard({
           <Text style={styles.payText}>P A Y</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

@@ -25,5 +25,5 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={isAuthenticated ? "/home/HomeScreen" : "/auth/Signin"} />;
+  return <Redirect href={isAuthenticated ? "/home/HomeScreen" : "/auth/signin"} />;
 } 

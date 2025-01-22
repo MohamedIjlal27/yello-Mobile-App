@@ -63,7 +63,7 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
               onClose();
               
               // Navigate back to sign-in screen
-              router.replace('/auth/Signin');
+              router.replace('/auth/signin');
             }
           }
         ]
