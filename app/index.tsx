@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { initializeAuth } from '../store/slices/authSlice';
 
 export default function Index() {
+
   const dispatch = useAppDispatch();
   const { isAuthenticated, userData } = useAppSelector((state) => state.auth);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,4 +27,5 @@ export default function Index() {
   }
 
   return <Redirect href={isAuthenticated ? "/home/HomeScreen" : "/auth/signin"} />;
+
 } 
