@@ -6,12 +6,14 @@ interface BiometricEnrollModalProps {
   visible: boolean;
   onClose: () => void;
   onEnableBiometric: () => void;
+  onSkipBiometric: () => void;
 }
 
 const BiometricEnrollModal: React.FC<BiometricEnrollModalProps> = ({
   visible,
   onClose,
   onEnableBiometric,
+  onSkipBiometric,
 }) => {
   return (
     <Modal
@@ -31,7 +33,13 @@ const BiometricEnrollModal: React.FC<BiometricEnrollModalProps> = ({
             <TouchableOpacity style={styles.button} onPress={onEnableBiometric}>
               <Text style={styles.buttonText}>Enable</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
+            <TouchableOpacity 
+              style={[styles.button, styles.cancelButton]} 
+              onPress={() => {
+                onClose();
+                onSkipBiometric();
+              }}
+            >
               <Text style={[styles.buttonText, styles.cancelButtonText]}>Not Now</Text>
             </TouchableOpacity>
           </View>

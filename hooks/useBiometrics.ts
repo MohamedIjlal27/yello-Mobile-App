@@ -48,10 +48,26 @@ export const useBiometrics = () => {
 
   const authenticateWithBiometric = async () => {
     try {
+      // Check if biometrics are enrolled
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!isEnrolled) {
+        console.error('No biometrics enrolled on this device');
+        return false;
+      }
+
+      // Check if biometrics are enabled for the app
+      const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+      if (!biometricEnabled) {
+        console.error('Biometrics not enabled for this app');
+        return false;
+      }
+
       const biometricAuth = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Scan your fingerprint to login',
         disableDeviceFallback: true,
+        fallbackLabel: 'Use password instead'
       });
+
       return biometricAuth.success;
     } catch (error) {
       console.error('Error authenticating with biometric:', error);
@@ -71,6 +87,7 @@ export const useBiometrics = () => {
         // Clear all biometric and authentication related data
         await AsyncStorage.multiRemove([
           'biometricEnabled',
+          'biometricUsername',
           'hasLoggedIn',
           'rememberedUsername'
         ]);

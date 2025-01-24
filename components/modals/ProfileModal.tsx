@@ -54,16 +54,36 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
             text: 'Logout',
             style: 'destructive',
             onPress: async () => {
-              // Clear user data but preserve biometric settings
-              await clearBiometricData(true);
-              // Clear authentication state
-              await clearAuthentication();
-              
-              // Close the profile modal
-              onClose();
-              
-              // Navigate back to sign-in screen
-              router.replace('/auth/signin');
+              try {
+                // Clear authentication state
+                await clearAuthentication();
+                await clearBiometricData();
+
+                // If biometrics are enabled, preserve the biometric setting but clear other data
+                const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+                if (biometricEnabled === 'true') {
+                  await AsyncStorage.multiRemove([
+                    'rememberMe',
+                    'rememberedUsername',
+                    'hasLoggedIn'
+                  ]);
+                } else {
+                  // If biometrics not enabled, clear everything including remember me
+                  await AsyncStorage.multiRemove([
+                    'rememberMe',
+                    'rememberedUsername',
+                    'hasLoggedIn',
+                    'biometricEnabled',
+                    'biometricUsername'
+                  ]);
+                }
+
+                onClose();
+                router.replace('/auth/signin');
+              } catch (error) {
+                console.error('Error during logout cleanup:', error);
+                Alert.alert('Error', 'Failed to complete logout process');
+              }
             }
           }
         ]

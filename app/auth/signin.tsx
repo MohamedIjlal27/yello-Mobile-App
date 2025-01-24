@@ -9,15 +9,14 @@ import { useBiometrics } from '../../hooks/useBiometrics';
 import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { loginUser, setBiometricEnabled, setRememberMe } from '../../store/slices/authSlice';
+import { setAuthenticated, AUTH_KEYS } from '../../utils/authStorage';
 
 export default function SignIn() {
-  const dispatch = useAppDispatch();
-  const { isAuthenticated, isBiometricEnabled, rememberedUsername, rememberMe } = useAppSelector((state) => state.auth);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const { 
     isBiometricSupported, 
@@ -28,16 +27,41 @@ export default function SignIn() {
   } = useBiometrics();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/home/HomeScreen');
-    }
-  }, [isAuthenticated]);
+    const checkAuth = async () => {
+      try {
+        const isAuth = await AsyncStorage.getItem(AUTH_KEYS.IS_AUTHENTICATED);
+        const rememberMe = await AsyncStorage.getItem('rememberMe');
+        
+        // Only auto-login if both authenticated and remember me is true
+        if (isAuth === 'true' && rememberMe === 'true') {
+          router.replace('/home/HomeScreen');
+        }
+      } catch (error) {
+        console.error('Error checking auth state:', error);
+      }
+    };
+    checkAuth();
+  }, []);
 
   useEffect(() => {
-    if (rememberedUsername) {
-      setUsername(rememberedUsername);
-    }
-  }, [rememberedUsername]);
+    const loadRememberedUsername = async () => {
+      const savedUsername = await AsyncStorage.getItem('rememberedUsername');
+      if (savedUsername) {
+        setUsername(savedUsername);
+        setRememberMe(true);
+      }
+    };
+    loadRememberedUsername();
+  }, []);
+
+  useEffect(() => {
+    // Check if biometrics are enabled
+    const checkBiometricStatus = async () => {
+      const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+      setIsBiometricEnabled(biometricEnabled === 'true');
+    };
+    checkBiometricStatus();
+  }, []);
 
   const handleLogin = async () => {
     try {
@@ -55,15 +79,28 @@ export default function SignIn() {
           role: 'Cash Collector', // This should come from your backend
         };
 
-        await dispatch(loginUser(userData, rememberMe));
-
-        const hasLoggedIn = await AsyncStorage.getItem('hasLoggedIn');
+        // Save authentication state
+        await setAuthenticated(userData);
         
-        if (!hasLoggedIn && isBiometricSupported && !isBiometricEnabled) {
-          setShowBiometricPrompt(true);
+        // Handle remember me
+        await AsyncStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
+        if (rememberMe) {
+          await AsyncStorage.setItem('rememberedUsername', username);
         } else {
-          router.replace('/home/HomeScreen');
+          await AsyncStorage.removeItem('rememberedUsername');
         }
+
+        // Check biometric status
+        if (isBiometricSupported) {
+          const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+          if (!biometricEnabled) {
+            setShowBiometricPrompt(true);
+            return; // Don't navigate yet, wait for biometric setup decision
+          }
+        }
+        
+        // Only navigate to home if we're not showing biometric prompt
+        router.replace('/home/HomeScreen');
       } else {
         Alert.alert('Error', 'Invalid credentials');
       }
@@ -74,14 +111,39 @@ export default function SignIn() {
   };
 
   const handleEnableBiometric = async () => {
-    const success = await enableBiometric();
-    if (success) {
+    try {
+      const success = await enableBiometric();
       await AsyncStorage.setItem('hasLoggedIn', 'true');
-      dispatch(setBiometricEnabled(true));
+      
+      if (success) {
+        // Store the username for biometric login
+        await AsyncStorage.setItem('biometricUsername', username);
+        
+        Alert.alert(
+          'Success',
+          'Biometric login has been enabled successfully!'
+        );
+        // Save the current user data for biometric login
+        const userData = {
+          username: username,
+          role: 'Cash Collector',
+        };
+        await setAuthenticated(userData);
+      } else {
+        Alert.alert(
+          'Biometric Setup Failed',
+          'Failed to enable biometric login. You can try enabling it later from the profile settings.'
+        );
+      }
+      
       setShowBiometricPrompt(false);
       router.replace('/home/HomeScreen');
-    } else {
-      await AsyncStorage.setItem('hasLoggedIn', 'true');
+    } catch (error) {
+      console.error('Error enabling biometric:', error);
+      Alert.alert(
+        'Error',
+        'An error occurred while setting up biometric login. Please try again later.'
+      );
       setShowBiometricPrompt(false);
       router.replace('/home/HomeScreen');
     }
@@ -89,13 +151,33 @@ export default function SignIn() {
 
   const handleBiometricLogin = async () => {
     try {
+      // First check if biometrics are enabled
+      const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+      if (!biometricEnabled) {
+        Alert.alert(
+          'Biometric Login Not Enabled',
+          'Please enable biometric login in your profile settings first.'
+        );
+        return;
+      }
+
+      // Get the stored username for biometric login
+      const storedUsername = await AsyncStorage.getItem('biometricUsername');
+      if (!storedUsername) {
+        Alert.alert(
+          'Biometric Login Error',
+          'No stored credentials found. Please login with username and password first.'
+        );
+        return;
+      }
+
       const success = await authenticateWithBiometric();
-      if (success && rememberedUsername) {
+      if (success) {
         const userData = {
-          username: rememberedUsername,
-          role: 'Cash Collector', // This should come from your backend
+          username: storedUsername,
+          role: 'Cash Collector',
         };
-        await dispatch(loginUser(userData, true));
+        await setAuthenticated(userData);
         router.replace('/home/HomeScreen');
       }
     } catch (error) {
@@ -105,6 +187,11 @@ export default function SignIn() {
         'Could not authenticate with fingerprint. Please try again or use your credentials.'
       );
     }
+  };
+
+  const handleSkipBiometric = () => {
+    // Just navigate to home page when user skips biometric setup
+    router.replace('/home/HomeScreen');
   };
 
   const handleFocus = (y: number) => {
@@ -158,7 +245,7 @@ export default function SignIn() {
             <CustomCheckbox
               label="Remember Me"
               value={rememberMe}
-              onValueChange={(value) => dispatch(setRememberMe(value))}
+              onValueChange={(value) => setRememberMe(value)}
             />
 
             <CustomButton 
@@ -186,6 +273,7 @@ export default function SignIn() {
         visible={showBiometricPrompt}
         onClose={() => setShowBiometricPrompt(false)}
         onEnableBiometric={handleEnableBiometric}
+        onSkipBiometric={handleSkipBiometric}
       />
     </View>
   );
