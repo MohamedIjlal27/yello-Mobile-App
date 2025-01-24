@@ -24,7 +24,36 @@ const demoInvoices = [
         discountPercentage: 20.00,
         amount: 52000.00,
       },
-      // Add more products as needed
+      {
+        id: '2',
+        productName: 'PANADOL 500MG TAB 144S',
+        quantity: 30,
+        uom: 'Box',
+        unitPrice: 1200.00,
+        discount: 180.00,
+        discountPercentage: 15.00,
+        amount: 30600.00,
+      },
+      {
+        id: '3',
+        productName: 'VITAMIN C 500MG 100S',
+        quantity: 15,
+        uom: 'Box',
+        unitPrice: 850.00,
+        discount: 85.00,
+        discountPercentage: 10.00,
+        amount: 11475.00,
+      },
+      {
+        id: '4',
+        productName: 'BETADINE SOLUTION 500ML',
+        quantity: 10,
+        uom: 'Bottles',
+        unitPrice: 1500.00,
+        discount: 225.00,
+        discountPercentage: 15.00,
+        amount: 12750.00,
+      }
     ]
   },
   {
@@ -65,9 +94,30 @@ export default function InvoiceReceiptsScreen() {
   };
 
   const handleInvoicePress = (index: number) => {
-    setSelectedInvoice(index);
-    setSelectedProduct(0);
-    setIsModalVisible(true);
+    if (selectedInvoice === index && isModalVisible) {
+      // If clicking the same invoice and modal is open, close it
+      setIsModalVisible(false);
+      setSelectedInvoice(null);
+    } else {
+      // If clicking a different invoice or modal is closed, open it
+      setSelectedInvoice(index);
+      setSelectedProduct(0);
+      setIsModalVisible(true);
+    }
+  };
+
+  const handleNextProduct = () => {
+    if (selectedInvoice !== null && 
+        demoInvoices[selectedInvoice].products && 
+        selectedProduct < demoInvoices[selectedInvoice].products.length - 1) {
+      setSelectedProduct(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousProduct = () => {
+    if (selectedProduct > 0) {
+      setSelectedProduct(prev => prev - 1);
+    }
   };
 
   return (
@@ -78,29 +128,29 @@ export default function InvoiceReceiptsScreen() {
       />
       <ScrollView style={styles.scrollView}>
         {demoInvoices.map((invoice, index) => (
-          <InvoiceCard
-            key={invoice.id}
-            shopName={invoice.shopName}
-            address={invoice.address}
-            invoiceNumber={invoice.invoiceNumber}
-            date={invoice.date}
-            amount={invoice.amount}
-            onPay={handlePay}
-            onLocate={handleLocate}
-            onPress={() => handleInvoicePress(index)}
-          />
+          <React.Fragment key={invoice.id}>
+            <InvoiceCard
+              shopName={invoice.shopName}
+              address={invoice.address}
+              invoiceNumber={invoice.invoiceNumber}
+              date={invoice.date}
+              amount={invoice.amount}
+              onPay={handlePay}
+              onLocate={handleLocate}
+              onPress={() => handleInvoicePress(index)}
+            />
+            {selectedInvoice === index && invoice.products && isModalVisible && (
+              <InvoiceDetailsModal
+                currentIndex={selectedProduct + 1}
+                totalItems={invoice.products.length}
+                details={invoice.products[selectedProduct]}
+                onSwipeLeft={handleNextProduct}
+                onSwipeRight={handlePreviousProduct}
+              />
+            )}
+          </React.Fragment>
         ))}
       </ScrollView>
-
-      {selectedInvoice !== null && demoInvoices[selectedInvoice].products && (
-        <InvoiceDetailsModal
-          visible={isModalVisible}
-          onClose={() => setIsModalVisible(false)}
-          currentIndex={selectedProduct + 1}
-          totalItems={demoInvoices[selectedInvoice].products.length}
-          details={demoInvoices[selectedInvoice].products[selectedProduct]}
-        />
-      )}
     </View>
   );
 }

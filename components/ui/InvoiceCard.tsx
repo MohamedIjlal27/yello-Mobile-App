@@ -12,6 +12,10 @@ interface InvoiceCardProps {
   onPress?: () => void;
 }
 
+const formatAmount = (amount: number) => {
+  return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
 export default function InvoiceCard({
   shopName,
   address,
@@ -42,7 +46,7 @@ export default function InvoiceCard({
             style={styles.locateIcon}
             resizeMode="contain"
           />
-          <Text style={styles.locateText}>Locate</Text>
+          <Text style={styles.locateText}>Navigate</Text>
         </TouchableOpacity>
       </View>
 
@@ -65,7 +69,7 @@ export default function InvoiceCard({
           <View style={styles.verticalSeparator} />
           <View style={styles.amountSection}>
             <Text style={styles.currency}>LKR</Text>
-            <Text style={styles.amount}>{amount.toFixed(2)}</Text>
+            <Text style={styles.amount}>{formatAmount(amount)}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={onPay} style={styles.payButton}>
@@ -83,7 +87,7 @@ export default function InvoiceCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#F7F7F7FF',
+    backgroundColor: '#E9E6E6FF',
     borderRadius: 10,
     padding: 16,
     marginHorizontal: 16,
@@ -103,7 +107,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 4,
   },
   shopInfo: {
     flexDirection: 'row',
@@ -128,21 +132,21 @@ const styles = StyleSheet.create({
   },
   locateButton: {
     backgroundColor: '#F5F5F5',
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
   locateIcon: {
-    width: 22,
-    height: 22,
-    marginRight: 4,
+    width: 18,
+    height: 18,
+    marginRight: 2,
   },
   locateText: {
     color: '#324F5D',
     fontWeight: '500',
-    fontSize: 16,
+    fontSize: 14,
   },
   invoiceSection: {
     flexDirection: 'row',
@@ -162,12 +166,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeIcon: {
-    width: 24,
-    height: 24,
-    marginRight: 8,
+    width: 30,
+    height: 30,
+    marginRight: 6,
+    left: 0,
   },
   invoiceNumber: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     color: '#000000',
     fontFamily: 'Assistant',
@@ -182,12 +187,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 8,
+    gap: 4,
   },
   currency: {
-    fontSize: 16,
-    color: '#000000',
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#6B7280',
     fontFamily: 'Assistant',
   },
   amount: {
@@ -198,8 +202,8 @@ const styles = StyleSheet.create({
   },
   payButton: {
     backgroundColor: '#FF0000',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -217,14 +221,14 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#E5E5E5',
-    marginVertical: 5,
-    width: '67%',
+    backgroundColor: '#BDBCBCFF',
+    marginVertical: 1,
+    width: '72%',
   },
   verticalSeparator: {
     width: 1,
     height: '100%',
-    backgroundColor: '#E5E5E5',
+    backgroundColor: '#BDBCBCFF',
     marginHorizontal: 16,
   },
 }); 
