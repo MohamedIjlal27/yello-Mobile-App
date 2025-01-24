@@ -202,7 +202,8 @@ export default function InvoiceReceiptsScreen() {
           onClose={handleClosePayModal}
           onUpload={handleUploadInvoice}
           onAcceptPayment={handleAcceptPayment}
-
+        />
+      )}
       {selectedInvoice !== null && isCancelModalVisible && (
         <CancelBillModal
           invoiceNo={demoInvoices[selectedInvoice].invoiceNumber}
@@ -210,7 +211,6 @@ export default function InvoiceReceiptsScreen() {
           amount={demoInvoices[selectedInvoice].amount}
           onProceed={handleProceedCancel}
           onDiscard={handleDiscardCancel}
-
         />
       )}
     </View>
