@@ -3,7 +3,11 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import CustomSearchBar from '../../../components/ui/CustomSearchBar';
 import InvoiceCard from '../../../components/ui/InvoiceCard';
 import InvoiceDetailsModal from './components/InvoiceDetailsModal';
+
+import UploadInvoiceModal from './components/UploadInvoiceModal';
+
 import CancelBillModal from './components/CancelBillModal';
+
 
 // Demo data
 const demoInvoices = [
@@ -80,15 +84,20 @@ export default function InvoiceReceiptsScreen() {
   const [selectedInvoice, setSelectedInvoice] = useState<number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<number>(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const [isPayModalVisible, setIsPayModalVisible] = useState(false);
+
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
     // Implement search logic here
   };
 
-  const handlePay = () => {
-    // Implement payment logic
+  const handlePay = (index: number) => {
+    setSelectedInvoice(index);
+    setIsPayModalVisible(true);
   };
 
   const handleLocate = () => {
@@ -112,11 +121,9 @@ export default function InvoiceReceiptsScreen() {
 
   const handleInvoicePress = (index: number) => {
     if (selectedInvoice === index && isModalVisible) {
-      // If clicking the same invoice and modal is open, close it
       setIsModalVisible(false);
       setSelectedInvoice(null);
     } else {
-      // If clicking a different invoice or modal is closed, open it
       setSelectedInvoice(index);
       setSelectedProduct(0);
       setIsModalVisible(true);
@@ -137,6 +144,21 @@ export default function InvoiceReceiptsScreen() {
     }
   };
 
+  const handleClosePayModal = () => {
+    setIsPayModalVisible(false);
+    setSelectedInvoice(null);
+  };
+
+  const handleUploadInvoice = () => {
+    // Implement upload logic
+  };
+
+  const handleAcceptPayment = () => {
+    // Implement payment acceptance logic
+    setIsPayModalVisible(false);
+    setSelectedInvoice(null);
+  };
+
   return (
     <View style={styles.container}>
       <CustomSearchBar
@@ -152,7 +174,7 @@ export default function InvoiceReceiptsScreen() {
               invoiceNumber={invoice.invoiceNumber}
               date={invoice.date}
               amount={invoice.amount}
-              onPay={handlePay}
+              onPay={() => handlePay(index)}
               onLocate={handleLocate}
               onPress={() => handleInvoicePress(index)}
               onCancel={() => handleCancel(index)}
@@ -170,6 +192,17 @@ export default function InvoiceReceiptsScreen() {
         ))}
       </ScrollView>
 
+      
+      {selectedInvoice !== null && isPayModalVisible && (
+        <UploadInvoiceModal
+          shopName={demoInvoices[selectedInvoice].shopName}
+          paymentType="Cash"
+          dueDate="21 Days"
+          amount={demoInvoices[selectedInvoice].amount}
+          onClose={handleClosePayModal}
+          onUpload={handleUploadInvoice}
+          onAcceptPayment={handleAcceptPayment}
+
       {selectedInvoice !== null && isCancelModalVisible && (
         <CancelBillModal
           invoiceNo={demoInvoices[selectedInvoice].invoiceNumber}
@@ -177,6 +210,7 @@ export default function InvoiceReceiptsScreen() {
           amount={demoInvoices[selectedInvoice].amount}
           onProceed={handleProceedCancel}
           onDiscard={handleDiscardCancel}
+
         />
       )}
     </View>
