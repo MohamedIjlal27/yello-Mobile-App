@@ -51,19 +51,6 @@ const InvoiceDetailsModal = ({
 
   return (
     <View style={styles.modalWrapper}>
-      {currentIndex > 1 && (
-        <TouchableOpacity 
-          style={[styles.scrollIndicator, styles.leftIndicator]}
-          onPress={onSwipeRight}
-          activeOpacity={0.7}
-        >
-          <Image 
-            source={require('../../../../assets/icons/Polygon.png')}
-            style={[styles.scrollIcon, styles.leftIcon]}
-          />
-        </TouchableOpacity>
-      )}
-      
       <Animated.View 
         style={[
           styles.container,
@@ -73,6 +60,32 @@ const InvoiceDetailsModal = ({
         ]}
         {...panResponder.panHandlers}
       >
+        {currentIndex > 1 && (
+          <TouchableOpacity 
+            style={[styles.scrollIndicator, styles.leftIndicator]}
+            onPress={onSwipeRight}
+            activeOpacity={0.7}
+          >
+            <Image 
+              source={require('../../../../assets/icons/Polygon.png')}
+              style={[styles.scrollIcon, styles.leftIcon]}
+            />
+          </TouchableOpacity>
+        )}
+
+        {currentIndex < totalItems && (
+          <TouchableOpacity 
+            style={[styles.scrollIndicator, styles.rightIndicator]}
+            onPress={onSwipeLeft}
+            activeOpacity={0.7}
+          >
+            <Image 
+              source={require('../../../../assets/icons/Polygon.png')}
+              style={[styles.scrollIcon, styles.rightIcon]}
+            />
+          </TouchableOpacity>
+        )}
+
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.productIcon}>
@@ -131,19 +144,6 @@ const InvoiceDetailsModal = ({
           </View>
         </View>
       </Animated.View>
-
-      {currentIndex < totalItems && (
-        <TouchableOpacity 
-          style={[styles.scrollIndicator, styles.rightIndicator]}
-          onPress={onSwipeLeft}
-          activeOpacity={0.7}
-        >
-          <Image 
-            source={require('../../../../assets/icons/Polygon.png')}
-            style={[styles.scrollIcon, styles.rightIcon]}
-          />
-        </TouchableOpacity>
-      )}
     </View>
   );
 };
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginHorizontal: 4,
+    marginHorizontal: 0,
   },
   scrollIndicator: {
     position: 'absolute',
@@ -163,6 +163,10 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFAEB',
+    borderRadius: 12,
+    top: '50%',
+    marginTop: -12,
   },
   leftIndicator: {
     left: 8,
