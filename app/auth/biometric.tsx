@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     width: '100%',
-    marginBottom: 30,
+    marginBottom: 24,
   },
   label: {
     fontSize: 16,
@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     width: '100%',
+    height: 56,
   },
   passwordInput: {
     paddingRight: 50,
