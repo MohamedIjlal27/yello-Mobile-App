@@ -41,10 +41,16 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
 
   const handleLogout = async () => {
     try {
+      // Check if biometric is enabled to customize the message
+      const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+      const message = biometricEnabled === 'true' 
+        ? 'This will erase your saved credentials and you will need to log in again. Your biometric settings will also be cleared.'
+        : 'This will erase your saved credentials and you will need to log in again.';
+
       // Show confirmation dialog
       Alert.alert(
-        'Logout',
-        'Are you sure you want to logout?',
+        'Confirm Logout',
+        message,
         [
           {
             text: 'Cancel',
