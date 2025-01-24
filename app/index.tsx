@@ -4,9 +4,11 @@ import { View, ActivityIndicator } from 'react-native';
 import { isAuthenticated, getUserData } from '../utils/authStorage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+type RedirectPath = '/auth/signin' | '/auth/biometric' | '/home/HomeScreen';
+
 export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
-  const [shouldRedirectToAuth, setShouldRedirectToAuth] = useState(true);
+  const [redirectPath, setRedirectPath] = useState<RedirectPath>('/auth/signin');
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -15,25 +17,24 @@ export default function Index() {
         const isAuth = await AsyncStorage.getItem('isAuthenticated');
         const rememberMe = await AsyncStorage.getItem('rememberMe');
 
-        // Always redirect to login if biometric is enabled
+        // If biometric is enabled, always go to biometric login
         if (biometricEnabled === 'true') {
-          await AsyncStorage.setItem('isAuthenticated', 'false'); // Force authentication state to false
-          setShouldRedirectToAuth(true);
+          setRedirectPath('/auth/biometric');
           setIsLoading(false);
           return;
         }
 
         // Only check remember me if biometric is not enabled
         if (isAuth === 'true' && rememberMe === 'true') {
-          setShouldRedirectToAuth(false);
+          setRedirectPath('/home/HomeScreen');
         } else {
-          setShouldRedirectToAuth(true);
+          setRedirectPath('/auth/signin');
         }
         
         setIsLoading(false);
       } catch (error) {
         console.error('Error checking auth status:', error);
-        setShouldRedirectToAuth(true);
+        setRedirectPath('/auth/signin');
         setIsLoading(false);
       }
     };
@@ -49,5 +50,5 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={shouldRedirectToAuth ? "/auth/signin" : "/home/HomeScreen"} />;
+  return <Redirect href={redirectPath} />;
 } 
