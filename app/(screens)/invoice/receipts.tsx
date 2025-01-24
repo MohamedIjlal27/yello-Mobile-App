@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import CustomSearchBar from '../../../components/ui/CustomSearchBar';
 import InvoiceCard from '../../../components/ui/InvoiceCard';
 import InvoiceDetailsModal from './components/InvoiceDetailsModal';
+import CancelBillModal from './components/CancelBillModal';
 
 // Demo data
 const demoInvoices = [
@@ -79,6 +80,7 @@ export default function InvoiceReceiptsScreen() {
   const [selectedInvoice, setSelectedInvoice] = useState<number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<number>(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -91,6 +93,21 @@ export default function InvoiceReceiptsScreen() {
 
   const handleLocate = () => {
     // Implement location logic
+  };
+
+  const handleCancel = (index: number) => {
+    setSelectedInvoice(index);
+    setIsCancelModalVisible(true);
+  };
+
+  const handleProceedCancel = () => {
+    // Implement cancel logic here
+    setIsCancelModalVisible(false);
+  };
+
+  const handleDiscardCancel = () => {
+    setIsCancelModalVisible(false);
+    setSelectedInvoice(null);
   };
 
   const handleInvoicePress = (index: number) => {
@@ -138,6 +155,7 @@ export default function InvoiceReceiptsScreen() {
               onPay={handlePay}
               onLocate={handleLocate}
               onPress={() => handleInvoicePress(index)}
+              onCancel={() => handleCancel(index)}
             />
             {selectedInvoice === index && invoice.products && isModalVisible && (
               <InvoiceDetailsModal
@@ -151,6 +169,16 @@ export default function InvoiceReceiptsScreen() {
           </React.Fragment>
         ))}
       </ScrollView>
+
+      {selectedInvoice !== null && isCancelModalVisible && (
+        <CancelBillModal
+          invoiceNo={demoInvoices[selectedInvoice].invoiceNumber}
+          customer={demoInvoices[selectedInvoice].shopName}
+          amount={demoInvoices[selectedInvoice].amount}
+          onProceed={handleProceedCancel}
+          onDiscard={handleDiscardCancel}
+        />
+      )}
     </View>
   );
 }
