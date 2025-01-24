@@ -10,6 +10,7 @@ interface InvoiceCardProps {
   onPay: () => void;
   onLocate: () => void;
   onPress?: () => void;
+  onCancel?: () => void;
 }
 
 const formatAmount = (amount: number) => {
@@ -24,7 +25,8 @@ export default function InvoiceCard({
   amount,
   onPay,
   onLocate,
-  onPress
+  onPress,
+  onCancel
 }: InvoiceCardProps) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
@@ -57,10 +59,12 @@ export default function InvoiceCard({
       <View style={styles.invoiceSection}>
         <View style={styles.invoiceInfo}>
           <View style={styles.invoiceLeft}>
-            <Image 
-              source={require('../../assets/icons/close.png')}
-              style={styles.closeIcon}
-            />
+            <TouchableOpacity onPress={onCancel}>
+              <Image 
+                source={require('../../assets/icons/close.png')}
+                style={styles.closeIcon}
+              />
+            </TouchableOpacity>
             <View>
               <Text style={styles.invoiceNumber}>{invoiceNumber}</Text>
               <Text style={styles.date}>{date}</Text>
