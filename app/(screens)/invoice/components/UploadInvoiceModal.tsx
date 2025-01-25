@@ -4,6 +4,7 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import type { CameraCapturedPicture } from 'expo-camera';
 import UploadIcon from '../../../../assets/icons/upload.svg';
 import RetakeIcon from '../../../../assets/icons/retake.svg';
+import { BlurView } from 'expo-blur';
 
 interface UploadInvoiceModalProps {
   shopName: string;
@@ -164,28 +165,30 @@ const UploadInvoiceModal = ({
           transparent={true}
           animationType="slide"
         >
-          <View style={styles.cameraContainer}>
-            <CameraView 
-              ref={cameraRef}
-              style={styles.camera} 
-              facing="back"
-            >
-              <View style={styles.cameraControls}>
-                <TouchableOpacity 
-                  style={styles.closeCamera} 
-                  onPress={() => setIsCameraVisible(false)}
-                >
-                  <Text style={styles.closeCameraText}>Close</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.captureButton}
-                  onPress={handleTakePicture}
-                >
-                  <View style={styles.captureCircle} />
-                </TouchableOpacity>
-              </View>
-            </CameraView>
-          </View>
+          <BlurView intensity={70} style={styles.blurContainer}>
+            <View style={styles.cameraContainer}>
+              <CameraView 
+                ref={cameraRef}
+                style={styles.camera} 
+                facing="back"
+              >
+                <View style={styles.cameraControls}>
+                  <TouchableOpacity 
+                    style={styles.closeCamera} 
+                    onPress={() => setIsCameraVisible(false)}
+                  >
+                    <Text style={styles.closeCameraText}>Close</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.captureButton}
+                    onPress={handleTakePicture}
+                  >
+                    <View style={styles.captureCircle} />
+                  </TouchableOpacity>
+                </View>
+              </CameraView>
+            </View>
+          </BlurView>
         </Modal>
       </View>
     </View>
@@ -422,6 +425,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -40,
     width: '100%',
+  },
+  blurContainer: {
+    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });
 
