@@ -6,6 +6,7 @@ import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
+import styles from '../../styles/invoice/styles';
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -220,34 +221,3 @@ export default function InvoiceReceiptsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  noDataText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-}); 
