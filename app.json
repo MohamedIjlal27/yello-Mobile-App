@@ -7,13 +7,21 @@
     "icon": "./assets/images/icon.png",
     "scheme": "YeLo",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "splash": {
         "image": "./assets/images/splash.png",
         "resizeMode": "contain",
-        "backgroundColor": "#FF0000"
+        "backgroundColor": "#FFFFFF"
       }
     },
     "android": {
@@ -25,7 +33,7 @@
       "splash": {
         "image": "./assets/images/splash.png",
         "resizeMode": "contain",
-        "backgroundColor": "#FF0000"
+        "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
@@ -38,7 +46,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FF0000"
+          "backgroundColor": "#FFFFFF"
         }
       ]
     ],
