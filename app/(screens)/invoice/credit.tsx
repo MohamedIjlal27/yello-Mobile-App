@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import InvoiceCard from './components/InvoiceCard';
+import InvoiceCard from './components/CreditInvoiceCard';
 import CustomSearchBar from '@/components/ui/CustomSearchBar';
 
 
@@ -85,7 +85,6 @@ export default function CreditInvoicesScreen() {
               shopName={invoice.shopName}
               address={invoice.address}
               invoiceNumber={invoice.invoiceNumber}
-              date={invoice.date}
               amount={invoice.amount}
               onPay={() => handlePay(index)}
               onLocate={handleLocate}

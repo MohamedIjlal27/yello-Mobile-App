@@ -6,7 +6,7 @@ import PayIcon from '../../../../assets/icons/pay.svg'
 import LocationIcon from '../../../../assets/icons/location.svg'
 import RedCloseIcon from '../../../../assets/icons/redClose.svg'
 
-interface InvoiceCardProps {
+interface ReceiptInvoiceCardProps {
   shopName: string;
   address: string;
   invoiceNumber: string;
@@ -22,7 +22,7 @@ const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-export default function InvoiceCard({
+export default function ReceiptInvoiceCardProps({
   shopName,
   address,
   invoiceNumber,
@@ -32,7 +32,7 @@ export default function InvoiceCard({
   onLocate,
   onPress,
   onCancel
-}: InvoiceCardProps) {
+}: ReceiptInvoiceCardProps) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
       {/* Shop Info Section */}
@@ -46,7 +46,7 @@ export default function InvoiceCard({
         </View>
         <TouchableOpacity onPress={onLocate} style={styles.locateButton}>
           <LocationIcon width={24} height={24} style={styles.locateIcon} />
-          <Text style={styles.locateText}>Navigate</Text>
+          <Text style={styles.locateText}>Locate</Text>
         </TouchableOpacity>
       </View>
 
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   },
   locateButton: {
     backgroundColor: '#F5F5F5',
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     flexDirection: 'row',

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import CustomSearchBar from '../../../components/ui/CustomSearchBar';
-import InvoiceCard from './components/InvoiceCard';
+import InvoiceCard from './components/ReceiptInvoiceCard';
 import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 
 import UploadInvoiceModal from './components/UploadInvoiceModal';
