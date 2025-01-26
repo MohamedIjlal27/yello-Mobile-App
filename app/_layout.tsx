@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import SplashScreenComponent from '../components/SplashScreen';
 import { View } from 'react-native';
+import { Provider } from 'react-redux';
+import { store } from '../store/store';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-export default function Layout() {
+export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -26,8 +28,10 @@ export default function Layout() {
   }
 
   return (
-    <Stack screenOptions={{
-      headerShown: false,
-    }} />
+    <Provider store={store}>
+      <Stack screenOptions={{
+        headerShown: false,
+      }} />
+    </Provider>
   );
 }

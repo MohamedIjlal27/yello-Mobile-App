@@ -7,6 +7,8 @@ import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
 import styles from '../../styles/invoice/styles';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store/store';
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -26,6 +28,7 @@ export default function InvoiceReceiptsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const userId = useSelector((state: RootState) => state.user.userId);
 
   useEffect(() => {
     loadInvoiceReceipts();
@@ -36,7 +39,7 @@ export default function InvoiceReceiptsScreen() {
       setError(null);
       const today = formatDate(new Date());
       const response = await fetchInvoiceReceipts({ 
-        salesperson_id: "16", 
+        salesperson_id: userId, 
         date: today 
       });
       

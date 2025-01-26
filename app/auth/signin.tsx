@@ -11,6 +11,10 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthenticated, AUTH_KEYS } from '../../utils/authStorage';
 import { login, LoginResponse } from '../../api/endpoints';
+import { useDispatch } from 'react-redux';
+import { setUserId } from '../../store/userSlice';
+import { AppDispatch } from '../../store/store';
+import styles from '../styles/auth/styles';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -28,51 +32,47 @@ export default function SignIn() {
     authenticateWithBiometric,
     clearBiometricData 
   } = useBiometrics();
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const isAuth = await AsyncStorage.getItem(AUTH_KEYS.IS_AUTHENTICATED);
-        const rememberMe = await AsyncStorage.getItem('rememberMe');
-        
-        // Only auto-login if both authenticated and remember me is true
-        if (isAuth === 'true' && rememberMe === 'true') {
-          router.replace('/home/HomeScreen');
-        }
-      } catch (error) {
-        console.error('Error checking auth state:', error);
-      }
-    };
     checkAuth();
-  }, []);
-
-  useEffect(() => {
-    const loadRememberedUsername = async () => {
-      const savedUsername = await AsyncStorage.getItem('rememberedUsername');
-      if (savedUsername) {
-        setUsername(savedUsername);
-        setRememberMe(true);
-      }
-    };
     loadRememberedUsername();
-  }, []);
-
-  useEffect(() => {
-    // Check if biometrics are enabled
-    const checkBiometricStatus = async () => {
-      const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
-      setIsBiometricEnabled(biometricEnabled === 'true');
-    };
     checkBiometricStatus();
   }, []);
 
-  const handleLogin = async () => {
+  const checkAuth = async () => {
     try {
-      if (!username || !password) {
-        Alert.alert('Error', 'Please enter both username and password');
-        return;
+      const isAuth = await AsyncStorage.getItem(AUTH_KEYS.IS_AUTHENTICATED);
+      const rememberMe = await AsyncStorage.getItem('rememberMe');
+      
+      if (isAuth === 'true' && rememberMe === 'true') {
+        router.replace('/home/HomeScreen');
       }
+    } catch (error) {
+      console.error('Error checking auth state:', error);
+    }
+  };
 
+  const loadRememberedUsername = async () => {
+    const savedUsername = await AsyncStorage.getItem('rememberedUsername');
+    if (savedUsername) {
+      setUsername(savedUsername);
+      setRememberMe(true);
+    }
+  };
+
+  const checkBiometricStatus = async () => {
+    const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+    setIsBiometricEnabled(biometricEnabled === 'true');
+  };
+
+  const handleLogin = async () => {
+    if (!username || !password) {
+      Alert.alert('Error', 'Please enter both username and password');
+      return;
+    }
+
+    try {
       setIsLoading(true);
 
       const loginParams = {
@@ -83,49 +83,44 @@ export default function SignIn() {
       };
 
       const response = await login(loginParams);
-      console.log('Login Response in Component:', response);
       setLoginResponse(response);
 
-      // Check if we have a response and result exists
-      if (response && response.result) {
-        // If success message exists, consider it a successful login
-        if (response.result.message?.toLowerCase().includes('success')) {
-          const userData = {
-            username: username,
-            email: username,
-            role: response.result.role || 'Cash Collector',
-            user_id: response.result.user_id || ''
-          };
+      if (response.result && response.result.message?.toLowerCase().includes('success')) {
+        const userData = {
+          username,
+          email: username,
+          role: response.result.role || 'Cash Collector',
+          user_id: response.result.user_id || ''
+        };
 
-          // Save authentication state
-          await setAuthenticated(userData);
+        dispatch(setUserId(response.result.user_id || ''));
+        await setAuthenticated(userData);
+        await handleRememberMe();
+
+        // First, check if biometrics are supported
+        if (isBiometricSupported) {
+          console.log('Biometrics are supported on this device');
           
-          // Handle remember me
-          if (rememberMe) {
-            await AsyncStorage.setItem('rememberedUsername', username);
-            await AsyncStorage.setItem('rememberMe', 'true');
+          // Check if biometrics are already enabled
+          const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+          console.log('Biometric enabled status:', biometricEnabled);
+
+          if (biometricEnabled !== 'true') {
+            console.log('Biometrics not enabled, showing prompt');
+            setShowBiometricPrompt(true);
+            return; // Don't navigate yet, wait for user response
           } else {
-            await AsyncStorage.removeItem('rememberedUsername');
-            await AsyncStorage.setItem('rememberMe', 'false');
+            console.log('Biometrics already enabled, skipping prompt');
           }
-
-          // Handle biometric setup if needed
-          if (isBiometricSupported) {
-            const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
-            if (!biometricEnabled) {
-              setShowBiometricPrompt(true);
-            }
-          }
-
-          // Redirect to HomeScreen
-          router.replace('/home/HomeScreen');
         } else {
-          // If no success message, treat as error
-          const errorMessage = response.result.message || 'Login failed. Please check your credentials.';
-          Alert.alert('Error', errorMessage);
+          console.log('Biometrics not supported on this device');
         }
+
+        // Only navigate if we're not showing the biometric prompt
+        router.replace('/home/HomeScreen');
       } else {
-        Alert.alert('Error', 'Invalid response from server');
+        const errorMessage = response.result?.message || 'Login failed. Please check your credentials.';
+        Alert.alert('Error', errorMessage);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -135,29 +130,36 @@ export default function SignIn() {
     }
   };
 
+  const handleRememberMe = async () => {
+    if (rememberMe) {
+      await AsyncStorage.setItem('rememberedUsername', username);
+      await AsyncStorage.setItem('rememberMe', 'true');
+    } else {
+      await AsyncStorage.removeItem('rememberedUsername');
+      await AsyncStorage.setItem('rememberMe', 'false');
+    }
+  };
+
   const handleEnableBiometric = async () => {
     try {
       if (!loginResponse?.result.user_id) {
         throw new Error('User ID not found');
       }
+
+      console.log('Attempting to enable biometrics...');
       const success = await enableBiometric(loginResponse.result.user_id);
-      await AsyncStorage.setItem('hasLoggedIn', 'true');
       
       if (success) {
-        // Store the username for biometric login
+        console.log('Biometric enrollment successful');
+        await AsyncStorage.setItem('biometricEnabled', 'true');
         await AsyncStorage.setItem('biometricUsername', username);
         
         Alert.alert(
           'Success',
           'Biometric login has been enabled successfully!'
         );
-        // Save the current user data for biometric login
-        const userData = {
-          username: username,
-          role: 'Cash Collector',
-        };
-        await setAuthenticated(userData);
       } else {
+        console.log('Biometric enrollment failed');
         Alert.alert(
           'Biometric Setup Failed',
           'Failed to enable biometric login. You can try enabling it later from the profile settings.'
@@ -177,56 +179,36 @@ export default function SignIn() {
     }
   };
 
+  const handleSkipBiometric = async () => {
+    console.log('User skipped biometric enrollment');
+    setShowBiometricPrompt(false);
+    router.replace('/home/HomeScreen');
+  };
+
   const handleBiometricLogin = async () => {
     try {
-      // First check if biometrics are enabled
-      const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
-      if (!biometricEnabled) {
-        Alert.alert(
-          'Biometric Login Not Enabled',
-          'Please enable biometric login in your profile settings first.'
-        );
-        return;
+      const savedUsername = await AsyncStorage.getItem('biometricUsername');
+      if (!savedUsername) {
+        throw new Error('No saved credentials found for biometric login');
       }
 
-      // Get the stored username for biometric login
-      const storedUsername = await AsyncStorage.getItem('biometricUsername');
-      if (!storedUsername) {
-        Alert.alert(
-          'Biometric Login Error',
-          'No stored credentials found. Please login with username and password first.'
-        );
-        return;
-      }
-
-      const success = await authenticateWithBiometric();
-      if (success) {
-        const userData = {
-          username: storedUsername,
-          role: 'Cash Collector',
-        };
-        await setAuthenticated(userData);
-        router.replace('/home/HomeScreen');
+      const authenticated = await authenticateWithBiometric();
+      if (authenticated) {
+        setUsername(savedUsername);
+        // Trigger login with saved credentials
+        await handleLogin();
       }
     } catch (error) {
-      console.error('Error during biometric login:', error);
+      console.error('Biometric login error:', error);
       Alert.alert(
-        'Authentication Failed',
-        'Could not authenticate with fingerprint. Please try again or use your credentials.'
+        'Biometric Login Failed',
+        'Please try logging in with your username and password'
       );
     }
   };
 
-  const handleSkipBiometric = () => {
-    // Just navigate to home page when user skips biometric setup
-    router.replace('/home/HomeScreen');
-  };
-
-  const handleFocus = (y: number) => {
-    scrollViewRef.current?.scrollTo({
-      y,
-      animated: true,
-    });
+  const handleFocus = (offset: number) => {
+    scrollViewRef.current?.scrollTo({ y: offset, animated: true });
   };
 
   return (
@@ -311,118 +293,3 @@ export default function SignIn() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  logoContainer: {
-    backgroundColor: '#FF0000',
-    padding: 40,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 316,
-    zIndex: 1,
-  },
-  logo: {
-    width: '60%',
-    height: 120,
-  },
-  formSection: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-  },
-  formContainer: {
-    padding: 24,
-    paddingTop: 0,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
-    marginBottom: 32,
-    marginTop: 20,
-  },
-  inputWrapper: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    color: '#000000',
-    marginBottom: 8,
-    textAlign: 'center',
-    fontWeight: '800',
-  },
-  inputContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  input: {
-    padding: 16,
-    fontSize: 16,
-    color: '#000',
-  },
-  passwordInput: {
-    paddingRight: 50,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: 15,
-    top: 15,
-  },
-  rememberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  checkbox: {
-    marginRight: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#666',
-  },
-  rememberText: {
-    fontSize: 16,
-    color: '#000000FF',
-    fontWeight: '500',
-  },
-  signInButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FF0000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginTop: 40,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  biometricButton: {
-    alignSelf: 'center',
-    padding: 15,
-    borderRadius: 30,
-    backgroundColor: '#F5F5F5',
-    marginTop: 20,
-  },
-}); 
