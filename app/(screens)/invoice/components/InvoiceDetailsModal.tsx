@@ -13,9 +13,8 @@ interface InvoiceDetailsModalProps {
     quantity: number;
     uom: string;
     unitPrice: number;
-    discount: number;
-    discountPercentage: number;
     amount: number;
+    discount_percentage: number;
   };
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
@@ -127,9 +126,9 @@ const InvoiceDetailsModal = ({
             <View style={styles.cell}>
               <Text style={styles.label}>Discount</Text>
               <Text style={styles.value}>
-                {formatAmount(details.discount)}
+                {formatAmount(details.amount * (details.discount_percentage / 100))}
                 <Text style={styles.discountPercentage}>
-                  {` (${details.discountPercentage.toFixed(2)}%)`}
+                  {` (${details.discount_percentage.toFixed(2)}%)`}
                 </Text>
               </Text>
             </View>
