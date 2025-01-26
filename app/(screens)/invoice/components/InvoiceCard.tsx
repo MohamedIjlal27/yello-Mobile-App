@@ -1,5 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import ShopIcon from '../../../../assets/icons/shopIcon.svg'
+import CloseIcon from '../../../../assets/icons/close.svg'
+import PayIcon from '../../../../assets/icons/pay.svg'
+import LocationIcon from '../../../../assets/icons/location.svg'
+import RedCloseIcon from '../../../../assets/icons/redClose.svg'
 
 interface InvoiceCardProps {
   shopName: string;
@@ -33,21 +38,14 @@ export default function InvoiceCard({
       {/* Shop Info Section */}
       <View style={styles.shopSection}>
         <View style={styles.shopInfo}>
-          <Image 
-            source={require('../../assets/icons/shop.png')}
-            style={styles.shopIcon}
-          />
+          <ShopIcon width={24} height={24} style={styles.shopIcon} />
           <View>
             <Text style={styles.shopName}>{shopName}</Text>
             <Text style={styles.address}>{address}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={onLocate} style={styles.locateButton}>
-          <Image 
-            source={require('../../assets/icons/locate.png')}
-            style={styles.locateIcon}
-            resizeMode="contain"
-          />
+          <LocationIcon width={24} height={24} style={styles.locateIcon} />
           <Text style={styles.locateText}>Navigate</Text>
         </TouchableOpacity>
       </View>
@@ -60,10 +58,7 @@ export default function InvoiceCard({
         <View style={styles.invoiceInfo}>
           <View style={styles.invoiceLeft}>
             <TouchableOpacity onPress={onCancel}>
-              <Image 
-                source={require('../../assets/icons/close.png')}
-                style={styles.closeIcon}
-              />
+              <RedCloseIcon width={24} height={24} style={styles.closeIcon} />
             </TouchableOpacity>
             <View>
               <Text style={styles.invoiceNumber}>{invoiceNumber}</Text>
@@ -77,11 +72,7 @@ export default function InvoiceCard({
           </View>
         </View>
         <TouchableOpacity onPress={onPay} style={styles.payButton}>
-          <Image 
-            source={require('../../assets/icons/pay.png')}
-            style={styles.payIcon}
-            resizeMode="contain"
-          />
+          <PayIcon width={24} height={24} style={styles.payIcon} />
           <Text style={styles.payText}>P A Y</Text>
         </TouchableOpacity>
       </View>
@@ -136,14 +127,14 @@ const styles = StyleSheet.create({
   },
   locateButton: {
     backgroundColor: '#F5F5F5',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
   locateIcon: {
-    width: 18,
+    width: 14,
     height: 18,
     marginRight: 2,
   },
