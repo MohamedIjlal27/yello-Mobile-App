@@ -10,7 +10,7 @@ import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthenticated, AUTH_KEYS } from '../../utils/authStorage';
-import { login } from '../../api/endpoints';
+import { login, LoginResponse } from '../../api/endpoints';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -19,6 +19,7 @@ export default function SignIn() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginResponse, setLoginResponse] = useState<LoginResponse | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const { 
     isBiometricSupported, 
@@ -75,12 +76,13 @@ export default function SignIn() {
       setIsLoading(true);
 
       const response = await login({ username, password });
+      setLoginResponse(response);
 
       if (response.result.success) {
         const userData = {
           username: username,
-          role: response.result.role,
-          user_id: response.result.user_id
+          role: response.result.role!,
+          user_id: response.result.user_id!
         };
 
         // Save authentication state
@@ -106,11 +108,18 @@ export default function SignIn() {
         // Only navigate to home if we're not showing biometric prompt
         router.replace('/home/HomeScreen');
       } else {
-        Alert.alert('Error', response.result.message || 'Invalid credentials');
+        // Handle specific error cases
+        if (response.result.error_code === 'USER_NOT_FOUND') {
+          Alert.alert('Error', 'User not found. Please check your username.');
+        } else if (response.result.error_code === 'INVALID_CREDENTIALS') {
+          Alert.alert('Error', 'Username or password is incorrect.');
+        } else {
+          Alert.alert('Error', response.result.message || 'Login failed. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert('Error', 'An error occurred during login');
+      Alert.alert('Error', 'An error occurred during login. Please check your internet connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +127,10 @@ export default function SignIn() {
 
   const handleEnableBiometric = async () => {
     try {
-      const success = await enableBiometric();
+      if (!loginResponse?.result.user_id) {
+        throw new Error('User ID not found');
+      }
+      const success = await enableBiometric(loginResponse.result.user_id);
       await AsyncStorage.setItem('hasLoggedIn', 'true');
       
       if (success) {
@@ -264,7 +276,7 @@ export default function SignIn() {
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <ArrowRight width={22} height={22} fill="#FFFFFF" />
+                <ArrowRight width={22} height={22} fill="#FF0000FF" />
               )}
             </CustomButton>
 

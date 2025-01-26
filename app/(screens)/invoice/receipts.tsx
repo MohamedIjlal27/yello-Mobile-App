@@ -162,7 +162,12 @@ export default function InvoiceReceiptsScreen() {
             <React.Fragment key={order.order_number}>
               <InvoiceCard
                 shopName={order.customer.name}
-                address={order.customer.address}
+                address={{
+                  street: order.customer.address?.split(',')[0],
+                  city: order.customer.address?.split(',')[1]?.trim(),
+                  state: order.customer.address?.split(',')[2]?.trim(),
+                  postalCode: order.customer.address?.split(',')[3]?.trim()
+                }}
                 invoiceNumber={order.order_number.toString()}
                 date={new Date(order.order_date).toLocaleDateString()}
                 amount={order.total_amount}

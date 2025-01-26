@@ -11,14 +11,15 @@ interface LoginParams {
     password: string;
 }
 
-interface LoginResponse {
+export interface LoginResponse {
     jsonrpc: string;
     id: null;
     result: {
         success: boolean;
-        user_id: string;
-        role: string;
+        user_id?: string;
+        role?: string;
         message?: string;
+        error_code?: 'USER_NOT_FOUND' | 'INVALID_CREDENTIALS';
     };
 }
 
@@ -54,10 +55,27 @@ interface ApiResponse {
     };
 }
 
+// Biometric interfaces
+interface BiometricEnrollParams {
+    user_id: string;
+    device_id: string;
+    biometric_enabled: boolean;
+}
+
+interface BiometricEnrollResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        success: boolean;
+        message?: string;
+    };
+}
+
 // Endpoint paths
 export const ENDPOINTS = {
     INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
     LOGIN: `${API_BASE_URL}/login`,
+    SET_BIOMETRIC: `${API_BASE_URL}/v1/setbiometric`,
 };
 
 // Type for invoice receipts params
@@ -118,6 +136,38 @@ export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promi
         const data = await response.json();
 
         if (!data.result || !Array.isArray(data.result.orders)) {
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
+// Function to enroll biometric
+export const enrollBiometric = async (params: BiometricEnrollParams): Promise<BiometricEnrollResponse> => {
+    try {
+        const response = await fetch(ENDPOINTS.SET_BIOMETRIC, {
+            method: 'POST',
+            headers: DEFAULT_HEADERS,
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                params: params
+            }),
+        });
+        
+        if (!response.ok) {
+            throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        const data = await response.json();
+
+        if (!data.result || typeof data.result.success !== 'boolean') {
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
         }
 

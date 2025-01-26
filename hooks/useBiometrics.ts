@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Device from 'expo-device';
+import { enrollBiometric } from '../api/endpoints';
 
 export const useBiometrics = () => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
@@ -28,7 +30,7 @@ export const useBiometrics = () => {
     }
   };
 
-  const enableBiometric = async () => {
+  const enableBiometric = async (userId: string) => {
     try {
       const biometricAuth = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Scan your fingerprint to enable biometric login',
@@ -36,8 +38,20 @@ export const useBiometrics = () => {
       });
 
       if (biometricAuth.success) {
-        await AsyncStorage.setItem('biometricEnabled', 'true');
-        return true;
+        const deviceId = Device.deviceName || Device.modelName || 'unknown';
+        
+        // Call the API to enroll biometric
+        const response = await enrollBiometric({
+          user_id: userId,
+          device_id: deviceId,
+          biometric_enabled: true
+        });
+
+        if (response.result.success) {
+          await AsyncStorage.setItem('biometricEnabled', 'true');
+          return true;
+        }
+        return false;
       }
       return false;
     } catch (error) {

@@ -9,14 +9,24 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FF0000"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.mohamed_ijlal.YeLo"
+      "package": "com.mohamed_ijlal.YeLo",
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FF0000"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -28,10 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/yello_logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#FF0000"
         }
       ]
     ],

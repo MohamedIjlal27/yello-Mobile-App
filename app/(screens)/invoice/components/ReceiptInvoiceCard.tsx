@@ -8,7 +8,12 @@ import RedCloseIcon from '../../../../assets/icons/redClose.svg'
 
 interface ReceiptInvoiceCardProps {
   shopName: string;
-  address: string;
+  address: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+  };
   invoiceNumber: string;
   date: string;
   amount: number;
@@ -20,6 +25,15 @@ interface ReceiptInvoiceCardProps {
 
 const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+const formatAddress = (address: ReceiptInvoiceCardProps['address']) => {
+  const parts = [];
+  if (address.street) parts.push(address.street);
+  if (address.city) parts.push(address.city);
+  if (address.state) parts.push(address.state);
+  if (address.postalCode) parts.push(address.postalCode);
+  return parts.join(', ');
 };
 
 export default function ReceiptInvoiceCardProps({
@@ -41,7 +55,7 @@ export default function ReceiptInvoiceCardProps({
           <ShopIcon width={24} height={24} style={styles.shopIcon} />
           <View>
             <Text style={styles.shopName}>{shopName}</Text>
-            <Text style={styles.address}>{address}</Text>
+            <Text style={styles.address}>{formatAddress(address)}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={onLocate} style={styles.locateButton}>
@@ -120,10 +134,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Assistant',
   },
   address: {
-    fontSize: 14,
-    color: '#000000',
+    fontSize: 12,
+    color: '#666666',
     fontFamily: 'Assistant',
-    fontWeight: '500',
+    fontWeight: '400',
+    marginTop: 2,
+    maxWidth: '80%',
   },
   locateButton: {
     backgroundColor: '#F5F5F5',

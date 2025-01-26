@@ -11,7 +11,7 @@ export default function BiometricLogin() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { authenticateWithBiometric } = useBiometrics();
+  const { authenticateWithBiometric, enableBiometric, isFirstLogin } = useBiometrics();
 
   useEffect(() => {
     // Load the stored username
@@ -37,7 +37,17 @@ export default function BiometricLogin() {
       const userData = {
         username: username,
         role: 'Cash Collector',
+        userId: '16' // This should come from your login response
       };
+      
+      // If this is first login, enable biometric
+      if (isFirstLogin) {
+        const biometricEnabled = await enableBiometric(userData.userId);
+        if (!biometricEnabled) {
+          Alert.alert('Warning', 'Failed to enable biometric login. You can try again later in settings.');
+        }
+      }
+      
       await setAuthenticated(userData);
       router.replace('/home/HomeScreen');
     } else {
