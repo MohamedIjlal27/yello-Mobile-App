@@ -7,8 +7,10 @@ interface LocalizedString {
 
 // Login interfaces
 interface LoginParams {
-    username: string;
+    user_id: string;
+    email: string;
     password: string;
+    biometrics: string;
 }
 
 export interface LoginResponse {
@@ -75,7 +77,7 @@ interface BiometricEnrollResponse {
 export const ENDPOINTS = {
     INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
     LOGIN: `${API_BASE_URL}/login`,
-    SET_BIOMETRIC: `${API_BASE_URL}/v1/setbiometric`,
+    SET_BIOMETRIC: `${API_BASE_URL}/setbiometric`,
 };
 
 // Type for invoice receipts params
@@ -91,9 +93,12 @@ export const login = async (params: LoginParams): Promise<LoginResponse> => {
             method: 'POST',
             headers: DEFAULT_HEADERS,
             body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: null,
-                params: params
+                params: {
+                    user_id: params.user_id,
+                    email: params.email,
+                    password: params.password,
+                    biometrics: params.biometrics
+                }
             }),
         });
         
@@ -102,13 +107,16 @@ export const login = async (params: LoginParams): Promise<LoginResponse> => {
         }
 
         const data = await response.json();
+        console.log('Login Response:', data); // Add logging to debug
 
-        if (!data.result || typeof data.result.success !== 'boolean') {
+        // Update validation to match actual response structure
+        if (!data || !data.result) {
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
         }
 
         return data;
     } catch (error) {
+        console.error('API Error:', error); // Add error logging
         if (error instanceof Error) {
             throw error;
         }

@@ -75,47 +75,57 @@ export default function SignIn() {
 
       setIsLoading(true);
 
-      const response = await login({ username, password });
+      const loginParams = {
+        user_id: "",
+        email: username,
+        password: password,
+        biometrics: ""
+      };
+
+      const response = await login(loginParams);
+      console.log('Login Response in Component:', response);
       setLoginResponse(response);
 
-      if (response.result.success) {
-        const userData = {
-          username: username,
-          role: response.result.role!,
-          user_id: response.result.user_id!
-        };
+      // Check if we have a response and result exists
+      if (response && response.result) {
+        // If success message exists, consider it a successful login
+        if (response.result.message?.toLowerCase().includes('success')) {
+          const userData = {
+            username: username,
+            email: username,
+            role: response.result.role || 'Cash Collector',
+            user_id: response.result.user_id || ''
+          };
 
-        // Save authentication state
-        await setAuthenticated(userData);
-        
-        // Handle remember me
-        await AsyncStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
-        if (rememberMe) {
-          await AsyncStorage.setItem('rememberedUsername', username);
-        } else {
-          await AsyncStorage.removeItem('rememberedUsername');
-        }
-
-        // Check biometric status
-        if (isBiometricSupported) {
-          const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
-          if (!biometricEnabled) {
-            setShowBiometricPrompt(true);
-            return; // Don't navigate yet, wait for biometric setup decision
+          // Save authentication state
+          await setAuthenticated(userData);
+          
+          // Handle remember me
+          if (rememberMe) {
+            await AsyncStorage.setItem('rememberedUsername', username);
+            await AsyncStorage.setItem('rememberMe', 'true');
+          } else {
+            await AsyncStorage.removeItem('rememberedUsername');
+            await AsyncStorage.setItem('rememberMe', 'false');
           }
-        }
-        
-        // Only navigate to home if we're not showing biometric prompt
-        router.replace('/home/HomeScreen');
-      } else {
-        // Handle specific error cases
-        if (response.result.error_code === 'USER_NOT_FOUND') {
-          Alert.alert('Error', 'User not found. Please check your username.');
-        } else if (response.result.error_code === 'INVALID_CREDENTIALS') {
-          Alert.alert('Error', 'Username or password is incorrect.');
+
+          // Handle biometric setup if needed
+          if (isBiometricSupported) {
+            const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+            if (!biometricEnabled) {
+              setShowBiometricPrompt(true);
+            }
+          }
+
+          // Redirect to HomeScreen
+          router.replace('/home/HomeScreen');
         } else {
-          Alert.alert('Error', response.result.message || 'Login failed. Please try again.');
+          // If no success message, treat as error
+          const errorMessage = response.result.message || 'Login failed. Please check your credentials.';
+          Alert.alert('Error', errorMessage);
         }
+      } else {
+        Alert.alert('Error', 'Invalid response from server');
       }
     } catch (error) {
       console.error('Login error:', error);
