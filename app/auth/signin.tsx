@@ -86,37 +86,30 @@ export default function SignIn() {
       setLoginResponse(response);
 
       if (response.result && response.result.message?.toLowerCase().includes('success')) {
+        const userId = response.result.user_id || '';
+        
         const userData = {
           username,
           email: username,
           role: response.result.role || 'Cash Collector',
-          user_id: response.result.user_id || ''
+          user_id: userId
         };
 
-        dispatch(setUserId(response.result.user_id || ''));
         await setAuthenticated(userData);
+        
+        dispatch(setUserId(userId));
+        
         await handleRememberMe();
 
-        // First, check if biometrics are supported
         if (isBiometricSupported) {
-          console.log('Biometrics are supported on this device');
-          
-          // Check if biometrics are already enabled
           const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
-          console.log('Biometric enabled status:', biometricEnabled);
-
+          
           if (biometricEnabled !== 'true') {
-            console.log('Biometrics not enabled, showing prompt');
             setShowBiometricPrompt(true);
-            return; // Don't navigate yet, wait for user response
-          } else {
-            console.log('Biometrics already enabled, skipping prompt');
+            return;
           }
-        } else {
-          console.log('Biometrics not supported on this device');
         }
 
-        // Only navigate if we're not showing the biometric prompt
         router.replace('/home/HomeScreen');
       } else {
         const errorMessage = response.result?.message || 'Login failed. Please check your credentials.';
@@ -195,7 +188,6 @@ export default function SignIn() {
       const authenticated = await authenticateWithBiometric();
       if (authenticated) {
         setUsername(savedUsername);
-        // Trigger login with saved credentials
         await handleLogin();
       }
     } catch (error) {

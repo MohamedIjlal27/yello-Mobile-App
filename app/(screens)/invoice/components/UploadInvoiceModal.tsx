@@ -5,6 +5,7 @@ import type { CameraCapturedPicture } from 'expo-camera';
 import UploadIcon from '../../../../assets/icons/upload.svg';
 import RetakeIcon from '../../../../assets/icons/retake.svg';
 import { BlurView } from 'expo-blur';
+import RecordPaymentModal from './RecordPaymentModal';
 
 interface UploadInvoiceModalProps {
   shopName: string;
@@ -13,7 +14,7 @@ interface UploadInvoiceModalProps {
   amount: number;
   onClose: () => void;
   onUpload: () => void;
-  onAcceptPayment: () => void;
+  onAcceptPayment: (paymentType: string, amount: number) => void;
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -35,6 +36,8 @@ const UploadInvoiceModal = ({
 }: UploadInvoiceModalProps) => {
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [capturedImage, setCapturedImage] = useState<CameraCapturedPicture | null>(null);
+  const [showRecordPayment, setShowRecordPayment] = useState(false);
+  const [isUploadModalVisible, setIsUploadModalVisible] = useState(true);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
 
@@ -67,6 +70,21 @@ const UploadInvoiceModal = ({
     setIsCameraVisible(true);
   };
 
+  const handleAcceptPayment = () => {
+    setShowRecordPayment(true);
+    setIsUploadModalVisible(false);
+  };
+
+  const handlePaymentSubmit = (paymentType: string, amount: number) => {
+    setShowRecordPayment(false);
+    onAcceptPayment(paymentType, amount);
+  };
+
+  const handleCloseRecordPayment = () => {
+    setShowRecordPayment(false);
+    onClose();
+  };
+
   const renderScannerOverlay = () => {
     return (
       <View style={styles.scannerOverlay}>
@@ -85,113 +103,130 @@ const UploadInvoiceModal = ({
     );
   };
 
+  if (!isUploadModalVisible && !showRecordPayment) {
+    return null;
+  }
+
   return (
-    <View style={styles.overlay}>
-      <View style={styles.modalContainer}>
-        {/* Header with close button */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Upload Invoice</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Image
-              source={require('../../../../assets/icons/close.png')}
-              style={styles.closeIcon}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Shop Details */}
-        <View style={styles.shopDetails}>
-          <View style={styles.shopInfoContainer}>
-            <Text style={styles.shopName}>{shopName}</Text>
-            <View style={styles.paymentDetails}>
-              <Text style={styles.paymentType}>{paymentType}</Text>
-              <Text style={styles.separator}>|</Text>
-              <Text style={styles.dueDate}>{dueDate}</Text>
+    <>
+      {isUploadModalVisible && (
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            {/* Header with close button */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Upload Invoice</Text>
+              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <Image
+                  source={require('../../../../assets/icons/close.png')}
+                  style={styles.closeIcon}
+                />
+              </TouchableOpacity>
             </View>
-          </View>
-          <Text style={styles.amount}>LKR {formatAmount(amount)}</Text>
-        </View>
 
-        {/* Image Preview */}
-        {capturedImage && (
-          <View style={styles.previewContainer}>
-            <Image 
-              source={{ uri: capturedImage.uri }} 
-              style={styles.previewImage}
-              resizeMode="contain"
-            />
-          </View>
-        )}
-
-        {/* Upload/Retake Button */}
-        <TouchableOpacity 
-          style={[
-            styles.uploadButton,
-            capturedImage ? styles.retakeButton : null
-          ]} 
-          onPress={capturedImage ? handleRetake : handleUploadPress}
-        >
-          {capturedImage ? (
-            <RetakeIcon width={24} height={24} />
-          ) : (
-            <UploadIcon width={24} height={24} fill="#374151" />
-          )}
-          <Text style={[
-            styles.uploadText,
-            capturedImage ? styles.retakeText : null
-          ]}>
-            {capturedImage ? 'Retake' : 'Upload Invoice'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Accept Payment Button */}
-        <TouchableOpacity 
-          style={[
-            styles.acceptButton,
-            capturedImage ? styles.acceptButtonWithImage : styles.acceptButtonDisabled
-          ]} 
-          onPress={onAcceptPayment}
-          disabled={!capturedImage}
-        >
-          <Text style={[
-            styles.acceptText,
-            !capturedImage && styles.acceptTextDisabled
-          ]}>ACCEPT PAYMENT</Text>
-        </TouchableOpacity>
-
-        {/* Camera Modal */}
-        <Modal
-          visible={isCameraVisible}
-          transparent={true}
-          animationType="slide"
-        >
-          <BlurView intensity={70} style={styles.blurContainer}>
-            <View style={styles.cameraContainer}>
-              <CameraView 
-                ref={cameraRef}
-                style={styles.camera} 
-                facing="back"
-              >
-                <View style={styles.cameraControls}>
-                  <TouchableOpacity 
-                    style={styles.closeCamera} 
-                    onPress={() => setIsCameraVisible(false)}
-                  >
-                    <Text style={styles.closeCameraText}>Close</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.captureButton}
-                    onPress={handleTakePicture}
-                  >
-                    <View style={styles.captureCircle} />
-                  </TouchableOpacity>
+            {/* Shop Details */}
+            <View style={styles.shopDetails}>
+              <View style={styles.shopInfoContainer}>
+                <Text style={styles.shopName}>{shopName}</Text>
+                <View style={styles.paymentDetails}>
+                  <Text style={styles.paymentType}>{paymentType}</Text>
+                  <Text style={styles.separator}>|</Text>
+                  <Text style={styles.dueDate}>{dueDate}</Text>
                 </View>
-              </CameraView>
+              </View>
+              <Text style={styles.amount}>LKR {formatAmount(amount)}</Text>
             </View>
-          </BlurView>
-        </Modal>
-      </View>
-    </View>
+
+            {/* Image Preview */}
+            {capturedImage && (
+              <View style={styles.previewContainer}>
+                <Image 
+                  source={{ uri: capturedImage.uri }} 
+                  style={styles.previewImage}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+
+            {/* Upload/Retake Button */}
+            <TouchableOpacity 
+              style={[
+                styles.uploadButton,
+                capturedImage ? styles.retakeButton : null
+              ]} 
+              onPress={capturedImage ? handleRetake : handleUploadPress}
+            >
+              {capturedImage ? (
+                <RetakeIcon width={24} height={24} />
+              ) : (
+                <UploadIcon width={24} height={24} fill="#374151" />
+              )}
+              <Text style={[
+                styles.uploadText,
+                capturedImage ? styles.retakeText : null
+              ]}>
+                {capturedImage ? 'Retake' : 'Upload Invoice'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Accept Payment Button */}
+            <TouchableOpacity 
+              style={[
+                styles.acceptButton,
+                capturedImage ? styles.acceptButtonWithImage : styles.acceptButtonDisabled
+              ]} 
+              onPress={handleAcceptPayment}
+              disabled={!capturedImage}
+            >
+              <Text style={[
+                styles.acceptText,
+                !capturedImage && styles.acceptTextDisabled
+              ]}>ACCEPT PAYMENT</Text>
+            </TouchableOpacity>
+
+            {/* Camera Modal */}
+            <Modal
+              visible={isCameraVisible}
+              transparent={true}
+              animationType="slide"
+            >
+              <BlurView intensity={70} style={styles.blurContainer}>
+                <View style={styles.cameraContainer}>
+                  <CameraView 
+                    ref={cameraRef}
+                    style={styles.camera} 
+                    facing="back"
+                  >
+                    <View style={styles.cameraControls}>
+                      <TouchableOpacity 
+                        style={styles.closeCamera} 
+                        onPress={() => setIsCameraVisible(false)}
+                      >
+                        <Text style={styles.closeCameraText}>Close</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.captureButton}
+                        onPress={handleTakePicture}
+                      >
+                        <View style={styles.captureCircle} />
+                      </TouchableOpacity>
+                    </View>
+                  </CameraView>
+                </View>
+              </BlurView>
+            </Modal>
+          </View>
+        </View>
+      )}
+
+      <RecordPaymentModal
+        visible={showRecordPayment}
+        shopName={shopName}
+        dueDate={dueDate}
+        amount={amount}
+        onClose={handleCloseRecordPayment}
+        onSubmit={handlePaymentSubmit}
+      />
+    </>
   );
 };
 

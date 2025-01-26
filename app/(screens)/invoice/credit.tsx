@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import InvoiceCard from './components/CreditInvoiceCard';
 import CustomSearchBar from '@/components/ui/CustomSearchBar';
+import RecordPaymentModal from './components/RecordPaymentModal';
 
 
 const demoInvoices = [
@@ -72,6 +73,19 @@ export default function CreditInvoicesScreen() {
       setIsModalVisible(true);
     }
   };
+
+  const handlePayModalClose = () => {
+    setIsPayModalVisible(false);
+    setSelectedInvoice(null);
+  };
+
+  const handlePaymentSubmit = (paymentType: string, amount: number, additionalData?: any) => {
+    // Handle the payment submission here
+    console.log('Payment submitted:', { paymentType, amount, additionalData });
+    setIsPayModalVisible(false);
+    setSelectedInvoice(null);
+  };
+
   return (
     <View style={styles.container}>
       <CustomSearchBar
@@ -94,6 +108,18 @@ export default function CreditInvoicesScreen() {
           </React.Fragment>
         ))}
       </ScrollView>
+
+      {/* Payment Modal */}
+      {selectedInvoice !== null && (
+        <RecordPaymentModal
+          visible={isPayModalVisible}
+          shopName={demoInvoices[selectedInvoice].shopName}
+          dueDate="Due Today"
+          amount={demoInvoices[selectedInvoice].amount}
+          onClose={handlePayModalClose}
+          onSubmit={handlePaymentSubmit}
+        />
+      )}
     </View>
   );
 }
