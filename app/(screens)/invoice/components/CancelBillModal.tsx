@@ -1,10 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Pressable, ScrollView } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import WarningIcon from '../../../../assets/icons/warning.svg';
 import CancelIcon from '../../../../assets/icons/cancel.svg';
 import DiscountIcon from '../../../../assets/icons/discount.svg';
 import CheckIcon from '../../../../assets/icons/check.svg';
 import CloseIcon from '../../../../assets/icons/close.svg';
+import DiscountAdjustmentIcon from '../../../../assets/icons/discountAdjustment.svg';
+import CommentIcon from '../../../../assets/icons/comments.svg';
+import CustomDropdown from '../../../../components/ui/CustomDropdown';
+import { BlurView } from 'expo-blur';
 
 interface CancelBillModalProps {
   invoiceNo: string;
@@ -25,9 +30,38 @@ const CancelBillModal = ({
   onProceed,
   onDiscard,
 }: CancelBillModalProps) => {
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
+  const [showReasonInput, setShowReasonInput] = useState(false);
+  const [discount, setDiscount] = useState('');
+  const [selectedReason, setSelectedReason] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const reasonInputRef = useRef(null);
+
+  const reasons = [
+    'Select Reason',
+    'Damaged Products',
+    'Wrong Quantity',
+    'Price Mismatch',
+    'Quality Issues',
+    'Other'
+  ];
+
+  const handleDiscountPress = () => {
+    setShowDiscountInput(true);
+    setShowReasonInput(false);
+  };
+
+  const handleCancelBillPress = () => {
+    setShowDiscountInput(true);
+    setShowReasonInput(true);
+  };
+
   return (
     <View style={styles.overlay}>
-      <View style={styles.modalContainer}>
+      <View style={[
+        styles.modalContainer,
+        isDropdownOpen && styles.modalContainerExtended
+      ]}>
         {/* Warning Icon and Title */}
         <View style={styles.header}>
           <WarningIcon width={24} height={24} fill="#FFB020" />
@@ -62,7 +96,7 @@ const CancelBillModal = ({
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity 
             style={styles.actionButton}
-            onPress={onProceed}
+            onPress={handleCancelBillPress}
           >
             <CancelIcon width={20} height={20} fill="#374151" />
             <Text style={styles.buttonText}>Cancel Bill</Text>
@@ -70,12 +104,48 @@ const CancelBillModal = ({
 
           <TouchableOpacity 
             style={[styles.actionButton, styles.discountButton]}
-            onPress={onDiscard}
+            onPress={handleDiscountPress}
           >
             <DiscountIcon width={20} height={20} fill="#374151" />
             <Text style={styles.buttonText}>Discount Adjustment</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Discount Input Field */}
+        {showDiscountInput && (
+          <View style={styles.discountInputContainer}>
+            <View style={styles.discountInputRow}>
+              <DiscountAdjustmentIcon width={27} height={27} style={styles.discountAdjustmentIcon} />
+              <View style={styles.discountInputWrapper}>
+                <Text style={styles.currencySymbol}>LKR</Text>
+                <TextInput
+                  style={styles.discountInput}
+                  placeholder="Enter discount"
+                  value={discount}
+                  onChangeText={setDiscount}
+                  keyboardType="numeric"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Reason Input Field */}
+        {showReasonInput && (
+          <View style={styles.discountInputContainer}>
+            <View style={styles.discountInputRow}>
+              <CommentIcon width={27} height={27} style={styles.discountAdjustmentIcon} />
+              <CustomDropdown
+                value={selectedReason}
+                onChange={setSelectedReason}
+                options={reasons}
+                placeholder="Select Reason"
+                onDropdownStateChange={setIsDropdownOpen}
+              />
+            </View>
+          </View>
+        )}
 
         {/* Proceed/Discard Buttons */}
         <View style={styles.bottomButtonsContainer}>
@@ -118,6 +188,9 @@ const styles = StyleSheet.create({
     width: '90%',
     maxWidth: 400,
     height: 500,
+  },
+  modalContainerExtended: {
+    height: 700,
   },
   header: {
     flexDirection: 'row',
@@ -182,7 +255,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   bottomButtonsContainer: {
-    marginTop: 120,
+    marginTop: 'auto',
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
@@ -211,6 +284,43 @@ const styles = StyleSheet.create({
   },
   discardText: {
     color: '#FFFFFF',
+  },
+  discountInputContainer: {
+    marginTop: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  discountInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '80%',
+  },
+  discountAdjustmentIcon: {
+    marginTop: 2,
+  },
+  discountInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 12,
+    height: 48,
+  },
+  currencySymbol: {
+    fontSize: 16,
+    color: '#374151',
+    marginRight: 8,
+  },
+  discountInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827',
+    height: '100%',
+    textAlign: 'left',
   },
 });
 
