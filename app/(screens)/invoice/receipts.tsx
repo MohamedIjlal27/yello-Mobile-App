@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Text, RefreshControl } from 'react-native';
 import CustomSearchBar from '../../../components/ui/CustomSearchBar';
 import InvoiceCard from './components/ReceiptInvoiceCard';
 import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
+
+const formatDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function InvoiceReceiptsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +24,7 @@ export default function InvoiceReceiptsScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadInvoiceReceipts();
@@ -24,26 +32,30 @@ export default function InvoiceReceiptsScreen() {
 
   const loadInvoiceReceipts = async () => {
     try {
-      setLoading(true);
       setError(null);
-      console.log('Fetching invoice receipts...');
-      const response = await fetchInvoiceReceipts({ salesperson_id: "28", date:"2025-01-18" });
-      console.log('API Response:', JSON.stringify(response, null, 2));
+      const today = formatDate(new Date());
+      const response = await fetchInvoiceReceipts({ 
+        salesperson_id: "16", 
+        date: today 
+      });
       
       if (response.result && response.result.orders) {
         setOrders(response.result.orders);
-        console.log('Orders loaded:', response.result.orders.length);
       } else {
         setError('No orders found in the response');
-        console.error('Invalid response structure:', response);
       }
     } catch (error) {
-      console.error('Failed to load invoices:', error);
       setError(error instanceof Error ? error.message : 'Failed to load invoices');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    loadInvoiceReceipts();
+  }, []);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -121,7 +133,7 @@ export default function InvoiceReceiptsScreen() {
         onChangeText={handleSearch}
       />
       
-      {loading ? (
+      {loading && !refreshing ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
           <Text style={styles.loadingText}>Loading invoices...</Text>
@@ -135,7 +147,17 @@ export default function InvoiceReceiptsScreen() {
           <Text style={styles.noDataText}>No invoices found</Text>
         </View>
       ) : (
-        <ScrollView style={styles.scrollView}>
+        <ScrollView 
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#FF0000"]} // Android
+              tintColor="#FF0000" // iOS
+            />
+          }
+        >
           {orders.map((order, index) => (
             <React.Fragment key={order.order_number}>
               <InvoiceCard

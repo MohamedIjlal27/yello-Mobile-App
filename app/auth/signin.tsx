@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
 import { router } from 'expo-router';
 import ArrowRight from '../../assets/icons/ArrowRight';
@@ -10,6 +10,7 @@ import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthenticated, AUTH_KEYS } from '../../utils/authStorage';
+import { login } from '../../api/endpoints';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -17,6 +18,7 @@ export default function SignIn() {
   const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const { 
     isBiometricSupported, 
@@ -70,13 +72,15 @@ export default function SignIn() {
         return;
       }
 
-      // Here you would typically validate credentials with your backend
-      const loginSuccess = true; // Replace with actual login validation
+      setIsLoading(true);
 
-      if (loginSuccess) {
+      const response = await login({ username, password });
+
+      if (response.result.success) {
         const userData = {
           username: username,
-          role: 'Cash Collector', // This should come from your backend
+          role: response.result.role,
+          user_id: response.result.user_id
         };
 
         // Save authentication state
@@ -102,11 +106,13 @@ export default function SignIn() {
         // Only navigate to home if we're not showing biometric prompt
         router.replace('/home/HomeScreen');
       } else {
-        Alert.alert('Error', 'Invalid credentials');
+        Alert.alert('Error', response.result.message || 'Invalid credentials');
       }
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Error', 'An error occurred during login');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -253,8 +259,13 @@ export default function SignIn() {
                 Keyboard.dismiss();
                 handleLogin();
               }}
+              disabled={isLoading}
             >
-              <ArrowRight width={22} height={22} fill="#FF0000" />
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <ArrowRight width={22} height={22} fill="#FFFFFF" />
+              )}
             </CustomButton>
 
             {isBiometricSupported && isBiometricEnabled && (

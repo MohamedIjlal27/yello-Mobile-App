@@ -5,6 +5,23 @@ interface LocalizedString {
     en_US: string;
 }
 
+// Login interfaces
+interface LoginParams {
+    username: string;
+    password: string;
+}
+
+interface LoginResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        success: boolean;
+        user_id: string;
+        role: string;
+        message?: string;
+    };
+}
+
 export interface Product {
     product_id: number;
     product_name: LocalizedString;
@@ -40,6 +57,7 @@ interface ApiResponse {
 // Endpoint paths
 export const ENDPOINTS = {
     INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
+    LOGIN: `${API_BASE_URL}/login`,
 };
 
 // Type for invoice receipts params
@@ -48,12 +66,41 @@ interface InvoiceReceiptsParams {
     date: string;
 }
 
+// Function to login
+export const login = async (params: LoginParams): Promise<LoginResponse> => {
+    try {
+        const response = await fetch(ENDPOINTS.LOGIN, {
+            method: 'POST',
+            headers: DEFAULT_HEADERS,
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                params: params
+            }),
+        });
+        
+        if (!response.ok) {
+            throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        const data = await response.json();
+
+        if (!data.result || typeof data.result.success !== 'boolean') {
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
 // Function to fetch invoice receipts
 export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promise<ApiResponse> => {
     try {
-        console.log('Sending request to:', ENDPOINTS.INVOICE_RECEIPTS);
-        console.log('Request params:', params);
-
         const response = await fetch(ENDPOINTS.INVOICE_RECEIPTS, {
             method: 'POST',
             headers: DEFAULT_HEADERS,
@@ -63,26 +110,19 @@ export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promi
                 params: params
             }),
         });
-
-        console.log('Response status:', response.status);
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
             throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
         }
 
         const data = await response.json();
-        console.log('Response data:', JSON.stringify(data, null, 2));
 
         if (!data.result || !Array.isArray(data.result.orders)) {
-            console.error('Invalid response structure:', data);
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
         }
 
         return data;
     } catch (error) {
-        console.error('API call error:', error);
         if (error instanceof Error) {
             throw error;
         }

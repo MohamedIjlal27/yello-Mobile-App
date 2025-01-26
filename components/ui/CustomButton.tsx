@@ -5,16 +5,22 @@ interface CustomButtonProps {
   onPress: () => void;
   children: React.ReactNode;
   style?: object;
+  disabled?: boolean;
 }
 
-export default function CustomButton({ onPress, children, style }: CustomButtonProps) {
+export default function CustomButton({ onPress, children, style, disabled }: CustomButtonProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity 
-        style={[styles.button, style]} 
+        style={[
+          styles.button, 
+          style,
+          disabled && styles.buttonDisabled
+        ]} 
         onPress={onPress}
+        disabled={disabled}
       >
-        <View style={styles.whiteCircle}>
+        <View style={[styles.whiteCircle, disabled && styles.whiteCircleDisabled]}>
           {children}
         </View>
       </TouchableOpacity>
@@ -45,6 +51,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
+  buttonDisabled: {
+    backgroundColor: '#CCCCCC',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
   whiteCircle: {
     width: 40,
     height: 40,
@@ -52,5 +63,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  whiteCircleDisabled: {
+    backgroundColor: '#F5F5F5',
   },
 }); 
