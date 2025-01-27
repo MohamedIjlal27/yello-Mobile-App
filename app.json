@@ -11,7 +11,9 @@
     ],
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mohamed-ijlal.YeLo",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +28,14 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      
+      "expo-router",
+      "expo-font",
+      [
+        "expo-status-bar",
+        {
+          "style": "auto"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
