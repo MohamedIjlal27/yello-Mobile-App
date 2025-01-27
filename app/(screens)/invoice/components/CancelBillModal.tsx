@@ -203,8 +203,6 @@ const CancelBillModal = ({
                     'Discount Adjustment',
                   value: discount
                 };
-
-                console.log('Request Params:', requestParams);
                 
                 await applyDiscountAdjustment(requestParams);
                 Toast.show({
@@ -216,7 +214,6 @@ const CancelBillModal = ({
                 });
                 onProceed();
               } catch (error) {
-                console.error('API Error:', error);
                 Toast.show({
                   type: 'error',
                   text1: 'Error',
