@@ -1,25 +1,43 @@
 import { Stack } from 'expo-router';
+import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ScreensLayout() {
   return (
     <Stack
-      screenOptions={{
+      screenOptions={({ navigation }) => ({
         headerStyle: {
           backgroundColor: '#FFFFFFFF',
         },
-        headerTintColor: '#000000',
+        headerTintColor: Platform.OS === 'ios' ? '#007AFF' : '#000000',
         headerTitleStyle: {
           fontWeight: 'bold',
           fontSize: 20,
           color: '#324F5E',
         },
-        headerTitleAlign: 'left',
-      }}
+        headerTitleAlign: 'center',
+        headerLeft: () => 
+          navigation.canGoBack() ? (
+            <Ionicons 
+              name="chevron-back-outline" 
+              size={24} 
+              color={Platform.OS === 'ios' ? '#007AFF' : '#000000'}
+              onPress={() => navigation.goBack()}
+              style={{ marginLeft: Platform.OS === 'ios' ? 8 : 0 }}
+            />
+          ) : null,
+        headerBackVisible: false,
+        headerTransparent: false,
+        headerShadowVisible: true,
+        gestureEnabled: true,
+        gestureDirection: 'horizontal',
+        animation: 'slide_from_right',
+        presentation: 'card'
+      })}
     >
       <Stack.Screen 
         name="invoice/receipts" 
-        options={{ title: "Invoice Receipts" }} 
-      />
+        options={{ title: "Invoice Receipts" }}       />
       <Stack.Screen 
         name="invoice/cancelled" 
         options={{ title: "Cancelled Invoices" }} 
