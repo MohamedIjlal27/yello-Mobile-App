@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import InvoiceCard from './components/CancelledInvoiceCard';
 import CustomSearchBar from '@/components/ui/CustomSearchBar';
-
+import styles from '@/app/styles/cancelled/styles';
 
 const demoInvoices = [
   {
@@ -97,12 +97,3 @@ export default function CancelledInvoicesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollView: {
-    flex: 1,
-  },
-}); 

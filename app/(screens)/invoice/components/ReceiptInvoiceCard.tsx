@@ -5,7 +5,7 @@ import CloseIcon from '../../../../assets/icons/close.svg'
 import PayIcon from '../../../../assets/icons/pay.svg'
 import LocationIcon from '../../../../assets/icons/location.svg'
 import RedCloseIcon from '../../../../assets/icons/redClose.svg'
-import styles from '../../../styles/invoice/styles';
+import styles from '@/app/styles/invoiceReceipt/styles';
 
 interface ReceiptInvoiceCardProps {
   shopName: string;

@@ -6,10 +6,10 @@ import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
-import styles from '../../styles/invoice/styles';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../../store/store';
 import { setOrderId } from '../../../store/userSlice';
+import styles from '@/app/styles/invoiceReceipt/styles';
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();

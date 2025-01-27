@@ -12,7 +12,7 @@ import DiscountAdjustmentIcon from '../../../../assets/icons/discountAdjustment.
 import CommentIcon from '../../../../assets/icons/comments.svg';
 import CustomDropdown from '../../../../components/ui/CustomDropdown';
 import { applyDiscountAdjustment } from '../../../../api/endpoints';
-import styles from '../../../styles/components/cancelBillModal';
+import styles from '@/app/styles/components/cancelBillModal';
 
 interface CancelBillModalProps {
   invoiceNo: string;

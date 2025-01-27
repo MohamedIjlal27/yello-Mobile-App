@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import InvoiceCard from './components/CreditInvoiceCard';
 import CustomSearchBar from '@/components/ui/CustomSearchBar';
 import RecordPaymentModal from './components/RecordPaymentModal';
-
+import styles from '@/app/styles/credit/styles';
 
 const demoInvoices = [
   {
@@ -123,13 +123,3 @@ export default function CreditInvoicesScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollView: {
-    flex: 1,
-  },
-}); 
