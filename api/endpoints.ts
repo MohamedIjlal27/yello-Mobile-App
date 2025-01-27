@@ -41,6 +41,7 @@ interface Customer {
 }
 
 export interface Order {
+    order_id: number;
     order_number: number;
     order_date: string;
     total_amount: number;
@@ -73,11 +74,30 @@ interface BiometricEnrollResponse {
     };
 }
 
+// Discount Adjustment interfaces
+interface DiscountAdjustmentParams {
+    type: 'adjustment';
+    salesperson_id: string;
+    sales_order_id: string;
+    description: string;
+    value: string;
+}
+
+interface DiscountAdjustmentResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        message: string;
+        sales_order_id: string;
+    };
+}
+
 // Endpoint paths
 export const ENDPOINTS = {
     INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
     LOGIN: `${API_BASE_URL}/login`,
     SET_BIOMETRIC: `${API_BASE_URL}/setbiometric`,
+    DISCOUNT_ADJUSTMENT: `${API_BASE_URL}/sales-order/cancel`,
 };
 
 // Type for invoice receipts params
@@ -176,6 +196,44 @@ export const enrollBiometric = async (params: BiometricEnrollParams): Promise<Bi
         const data = await response.json();
 
         if (!data.result || typeof data.result.success !== 'boolean') {
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
+// Function to apply discount adjustment
+export const applyDiscountAdjustment = async (params: DiscountAdjustmentParams): Promise<DiscountAdjustmentResponse> => {
+    try {
+        const response = await fetch(ENDPOINTS.DISCOUNT_ADJUSTMENT, {
+            method: 'POST',
+            headers: DEFAULT_HEADERS,
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                params: {
+                    type: params.type,
+                    salesperson_id: params.salesperson_id,
+                    sales_order_id: params.sales_order_id,
+                    value: params.value,
+                    description: params.description || ''
+                }
+            }),
+        });
+        
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error?.message || API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        if (!data || !data.result) {
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
         }
 

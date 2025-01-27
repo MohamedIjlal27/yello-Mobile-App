@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Pressable, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../store/store';
+import Toast from 'react-native-toast-message';
 import WarningIcon from '../../../../assets/icons/warning.svg';
 import CancelIcon from '../../../../assets/icons/cancel.svg';
 import DiscountIcon from '../../../../assets/icons/discount.svg';
@@ -10,6 +13,7 @@ import DiscountAdjustmentIcon from '../../../../assets/icons/discountAdjustment.
 import CommentIcon from '../../../../assets/icons/comments.svg';
 import CustomDropdown from '../../../../components/ui/CustomDropdown';
 import { BlurView } from 'expo-blur';
+import { applyDiscountAdjustment } from '../../../../api/endpoints';
 
 interface CancelBillModalProps {
   invoiceNo: string;
@@ -39,6 +43,8 @@ const CancelBillModal = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<SelectedOption>(null);
   const reasonInputRef = useRef(null);
+  const userId = useSelector((state: RootState) => state.user.userId);
+  const orderId = useSelector((state: RootState) => state.user.orderId);
 
   const reasons = [
     'Select Reason',
@@ -168,7 +174,40 @@ const CancelBillModal = ({
         <View style={styles.bottomButtonsContainer}>
           <TouchableOpacity 
             style={[styles.bottomButton, styles.proceedButton]}
-            onPress={onProceed}
+            onPress={async () => {
+              try {
+                if (!discount) {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Discount amount is required'
+                  });
+                  return;
+                }
+
+                const requestParams = {
+                  type: 'adjustment' as const,
+                  salesperson_id: userId.toString(),
+                  sales_order_id: orderId,
+                  description: selectedReason && selectedReason !== 'Select Reason' ? selectedReason : 'unknown',
+                  value: discount
+                };
+                
+                await applyDiscountAdjustment(requestParams);
+                Toast.show({
+                  type: 'success',
+                  text1: 'Success',
+                  text2: `Discount adjustment added successfully to invoice ${invoiceNo}`
+                });
+                onProceed();
+              } catch (error) {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Error',
+                  text2: error instanceof Error ? error.message : 'Failed to apply discount adjustment'
+                });
+              }
+            }}
           >
             <CheckIcon width={20} height={20} fill="#FFFFFF" />
             <Text style={[styles.bottomButtonText, styles.proceedText]}>PROCEED</Text>

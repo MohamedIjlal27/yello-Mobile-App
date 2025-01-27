@@ -7,8 +7,9 @@ import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
 import styles from '../../styles/invoice/styles';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../../store/store';
+import { setOrderId } from '../../../store/userSlice';
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -28,6 +29,7 @@ export default function InvoiceReceiptsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useDispatch();
   const userId = useSelector((state: RootState) => state.user.userId);
 
   useEffect(() => {
@@ -77,15 +79,17 @@ export default function InvoiceReceiptsScreen() {
 
   const handleCancel = (index: number) => {
     setSelectedInvoice(index);
+    dispatch(setOrderId(orders[index].order_id.toString()));
     setIsCancelModalVisible(true);
   };
 
   const handleProceedCancel = () => {
-    // Implement cancel logic here
+    dispatch(setOrderId(''));
     setIsCancelModalVisible(false);
   };
 
   const handleDiscardCancel = () => {
+    dispatch(setOrderId(''));
     setIsCancelModalVisible(false);
     setSelectedInvoice(null);
   };

@@ -5,6 +5,7 @@ import SplashScreenComponent from '../components/SplashScreen';
 import { View } from 'react-native';
 import { Provider } from 'react-redux';
 import { store } from '../store/store';
+import Toast from 'react-native-toast-message';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -28,10 +29,13 @@ export default function RootLayout() {
   }
 
   return (
-    <Provider store={store}>
-      <Stack screenOptions={{
-        headerShown: false,
-      }} />
-    </Provider>
+    <>
+      <Provider store={store}>
+        <Stack screenOptions={{
+          headerShown: false,
+        }} />
+      </Provider>
+      <Toast />
+    </>
   );
 }
