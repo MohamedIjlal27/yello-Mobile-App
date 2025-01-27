@@ -19,6 +19,8 @@ interface CancelBillModalProps {
   onDiscard: () => void;
 }
 
+type SelectedOption = 'cancel' | 'discount' | null;
+
 const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
@@ -35,6 +37,7 @@ const CancelBillModal = ({
   const [discount, setDiscount] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<SelectedOption>(null);
   const reasonInputRef = useRef(null);
 
   const reasons = [
@@ -49,11 +52,13 @@ const CancelBillModal = ({
   const handleDiscountPress = () => {
     setShowDiscountInput(true);
     setShowReasonInput(false);
+    setSelectedOption('discount');
   };
 
   const handleCancelBillPress = () => {
     setShowDiscountInput(true);
     setShowReasonInput(true);
+    setSelectedOption('cancel');
   };
 
   return (
@@ -95,19 +100,31 @@ const CancelBillModal = ({
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity 
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              selectedOption === 'cancel' && styles.selectedActionButton
+            ]}
             onPress={handleCancelBillPress}
           >
-            <CancelIcon width={20} height={20} fill="#374151" />
-            <Text style={styles.buttonText}>Cancel Bill</Text>
+            <CancelIcon width={20} height={20} fill={selectedOption === 'cancel' ? '#EF4444' : '#374151'} />
+            <Text style={[
+              styles.buttonText,
+              selectedOption === 'cancel' && styles.selectedButtonText
+            ]}>Cancel Bill</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styles.actionButton, styles.discountButton]}
+            style={[
+              styles.actionButton,
+              selectedOption === 'discount' && styles.selectedActionButton
+            ]}
             onPress={handleDiscountPress}
           >
-            <DiscountIcon width={20} height={20} fill="#374151" />
-            <Text style={styles.buttonText}>Discount Adjustment</Text>
+            <DiscountIcon width={20} height={20} fill={selectedOption === 'discount' ? '#EF4444' : '#374151'} />
+            <Text style={[
+              styles.buttonText,
+              selectedOption === 'discount' && styles.selectedButtonText
+            ]}>Discount Adjustment</Text>
           </TouchableOpacity>
         </View>
 
@@ -120,7 +137,7 @@ const CancelBillModal = ({
                 <Text style={styles.currencySymbol}>LKR</Text>
                 <TextInput
                   style={styles.discountInput}
-                  placeholder="Enter discount"
+                  placeholder={showReasonInput ? "Enter Amount" : "Enter Discount Amount"}
                   value={discount}
                   onChangeText={setDiscount}
                   keyboardType="numeric"
@@ -245,14 +262,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     gap: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  discountButton: {
-    backgroundColor: '#F3F4F6',
+  selectedActionButton: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
   },
   buttonText: {
     fontSize: 14,
     color: '#374151',
     fontWeight: '500',
+  },
+  selectedButtonText: {
+    color: '#EF4444',
   },
   bottomButtonsContainer: {
     marginTop: 'auto',
