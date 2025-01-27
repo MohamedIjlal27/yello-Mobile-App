@@ -5,7 +5,39 @@ import SplashScreenComponent from '../components/SplashScreen';
 import { View } from 'react-native';
 import { Provider } from 'react-redux';
 import { store } from '../store/store';
-import Toast from 'react-native-toast-message';
+import Toast, { BaseToast, ErrorToast, ToastProps } from 'react-native-toast-message';
+
+// Toast configuration
+const toastConfig = {
+  success: (props: ToastProps) => (
+    <BaseToast
+      {...props}
+      style={{ borderLeftColor: '#10B981' }}
+      contentContainerStyle={{ paddingHorizontal: 15 }}
+      text1Style={{
+        fontSize: 17,
+        fontWeight: '600'
+      }}
+      text2Style={{
+        fontSize: 16
+      }}
+    />
+  ),
+  error: (props: ToastProps) => (
+    <ErrorToast
+      {...props}
+      style={{ borderLeftColor: '#EF4444' }}
+      contentContainerStyle={{ paddingHorizontal: 15 }}
+      text1Style={{
+        fontSize: 17,
+        fontWeight: '600'
+      }}
+      text2Style={{
+        fontSize: 16
+      }}
+    />
+  )
+};
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -35,7 +67,7 @@ export default function RootLayout() {
           headerShown: false,
         }} />
       </Provider>
-      <Toast />
+      <Toast config={toastConfig} />
     </>
   );
 }

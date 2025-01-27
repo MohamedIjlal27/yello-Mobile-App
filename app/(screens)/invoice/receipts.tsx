@@ -42,7 +42,7 @@ export default function InvoiceReceiptsScreen() {
       const today = formatDate(new Date());
       const response = await fetchInvoiceReceipts({ 
         salesperson_id: userId, 
-        date: "2025-01-26" 
+        date: today
       });
       
       if (response.result && response.result.orders) {
@@ -223,6 +223,7 @@ export default function InvoiceReceiptsScreen() {
           amount={orders[selectedInvoice].total_amount}
           onProceed={handleProceedCancel}
           onDiscard={handleDiscardCancel}
+          onRefresh={loadInvoiceReceipts}
         />
       )}
     </View>

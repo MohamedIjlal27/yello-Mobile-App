@@ -72,7 +72,7 @@ export default function ReceiptInvoiceCardProps({
         <View style={styles.invoiceInfo}>
           <View style={styles.invoiceLeft}>
             <TouchableOpacity onPress={onCancel}>
-              <RedCloseIcon width={24} height={24} style={styles.closeIcon} />
+              <RedCloseIcon width={27} height={27} style={styles.closeIcon} />
             </TouchableOpacity>
             <View>
               <Text style={styles.invoiceNumber}>{invoiceNumber}</Text>

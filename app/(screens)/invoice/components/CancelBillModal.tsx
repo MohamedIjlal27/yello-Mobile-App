@@ -21,6 +21,7 @@ interface CancelBillModalProps {
   amount: number;
   onProceed: () => void;
   onDiscard: () => void;
+  onRefresh: () => void;
 }
 
 type SelectedOption = 'cancel' | 'discount' | null;
@@ -35,6 +36,7 @@ const CancelBillModal = ({
   amount,
   onProceed,
   onDiscard,
+  onRefresh,
 }: CancelBillModalProps) => {
   const [showDiscountInput, setShowDiscountInput] = useState(false);
   const [showReasonInput, setShowReasonInput] = useState(false);
@@ -207,11 +209,10 @@ const CancelBillModal = ({
                 await applyDiscountAdjustment(requestParams);
                 Toast.show({
                   type: 'success',
-                  text1: 'Success',
-                  text2: selectedOption === 'cancel' 
-                    ? `Invoice ${invoiceNo} has been cancelled successfully`
-                    : `Discount adjustment added successfully to invoice ${invoiceNo}`
+                  text1: selectedOption === 'cancel' ? 'Bill Cancelled' : 'Discount Added',
+                  text2: `${selectedOption === 'cancel' ? 'Cancel Bill' : 'Discount Adjustment'} of ${selectedOption === 'cancel' ? '-' : '+'}LKR ${formatAmount(parseFloat(discount))} applied to invoice ${invoiceNo}`
                 });
+                onRefresh();
                 onProceed();
               } catch (error) {
                 Toast.show({
