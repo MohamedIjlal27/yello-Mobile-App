@@ -76,7 +76,11 @@ const UploadInvoiceModal = ({
           setIsCameraVisible(false);
         }
       } catch (error) {
-        console.error('Error taking picture:', error);
+        Alert.alert(
+          'Error',
+          'Failed to capture image. Please try again.',
+          [{ text: 'OK' }]
+        );
       }
     }
   };
@@ -89,7 +93,6 @@ const UploadInvoiceModal = ({
   const handleAcceptPayment = async () => {
     try {
       if (!orderId) {
-        console.error('Order ID is missing');
         Alert.alert(
           'Error',
           'Order ID is missing. Please try again.',
@@ -99,11 +102,6 @@ const UploadInvoiceModal = ({
       }
 
       if (capturedImage && capturedImage.base64 && imageFilename) {
-        console.log('Starting image upload...');
-        console.log('Filename:', imageFilename);
-        console.log('Order ID:', orderId);
-        
-        // Convert orderId to string and ensure it's a valid number
         const validOrderId = orderId.toString().trim();
         if (!validOrderId || isNaN(Number(validOrderId))) {
           Alert.alert(
@@ -119,11 +117,8 @@ const UploadInvoiceModal = ({
           image_base64: capturedImage.base64,
           filename: imageFilename
         });
-
-        console.log('API Response:', response);
         
         if (response?.result?.error) {
-          console.log('Image upload failed:', response.result.error);
           Alert.alert(
             'Upload Failed',
             response.result.error || 'Failed to upload invoice image',
@@ -141,7 +136,6 @@ const UploadInvoiceModal = ({
           return;
         }
 
-        console.log('Image upload successful');
         Alert.alert(
           'Success',
           'Invoice image uploaded successfully',
@@ -151,11 +145,6 @@ const UploadInvoiceModal = ({
         setShowRecordPayment(true);
         setIsUploadModalVisible(false);
       } else {
-        console.error('Required data missing', {
-          hasImage: !!capturedImage,
-          hasBase64: !!capturedImage?.base64,
-          hasFilename: !!imageFilename
-        });
         Alert.alert(
           'Error',
           'Missing required image data. Please try again.',
@@ -163,7 +152,6 @@ const UploadInvoiceModal = ({
         );
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
       Alert.alert(
         'Error',
         'Failed to upload invoice image. Please try again.',

@@ -267,11 +267,6 @@ export const applyDiscountAdjustment = async (params: DiscountAdjustmentParams):
 // Function to attach image
 export const attachImage = async (params: ImageAttachmentParams): Promise<ImageAttachmentResponse> => {
     try {
-        console.log('Sending request with params:', {
-            sales_order_id: params.sales_order_id,
-            filename: params.filename
-        });
-        
         const response = await fetch(ENDPOINTS.ATTACH_IMAGE, {
             method: 'POST',
             headers: DEFAULT_HEADERS,
@@ -287,7 +282,6 @@ export const attachImage = async (params: ImageAttachmentParams): Promise<ImageA
         });
         
         const data = await response.json();
-        console.log('Raw API Response:', data);
 
         if (!response.ok) {
             throw new Error(data.error?.message || API_ERROR_MESSAGES.SERVER_ERROR);
@@ -299,7 +293,6 @@ export const attachImage = async (params: ImageAttachmentParams): Promise<ImageA
 
         return data;
     } catch (error) {
-        console.error('API Error:', error);
         if (error instanceof Error) {
             throw error;
         }
