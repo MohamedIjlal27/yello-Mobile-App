@@ -185,26 +185,42 @@ const CancelBillModal = ({
                   return;
                 }
 
+                if (selectedOption === 'cancel' && (!selectedReason || selectedReason === 'Select Reason')) {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Please select a reason for cancellation'
+                  });
+                  return;
+                }
+
                 const requestParams = {
-                  type: 'adjustment' as const,
+                  type: selectedOption === 'cancel' ? 'cancel' as const : 'adjustment' as const,
                   salesperson_id: userId.toString(),
                   sales_order_id: orderId,
-                  description: selectedReason && selectedReason !== 'Select Reason' ? selectedReason : 'unknown',
+                  description: selectedOption === 'cancel' ? 
+                    (selectedReason && selectedReason !== 'Select Reason' ? selectedReason : '') : 
+                    'Discount Adjustment',
                   value: discount
                 };
+
+                console.log('Request Params:', requestParams);
                 
                 await applyDiscountAdjustment(requestParams);
                 Toast.show({
                   type: 'success',
                   text1: 'Success',
-                  text2: `Discount adjustment added successfully to invoice ${invoiceNo}`
+                  text2: selectedOption === 'cancel' 
+                    ? `Invoice ${invoiceNo} has been cancelled successfully`
+                    : `Discount adjustment added successfully to invoice ${invoiceNo}`
                 });
                 onProceed();
               } catch (error) {
+                console.error('API Error:', error);
                 Toast.show({
                   type: 'error',
                   text1: 'Error',
-                  text2: error instanceof Error ? error.message : 'Failed to apply discount adjustment'
+                  text2: error instanceof Error ? error.message : 'Failed to process request'
                 });
               }
             }}

@@ -76,10 +76,10 @@ interface BiometricEnrollResponse {
 
 // Discount Adjustment interfaces
 interface DiscountAdjustmentParams {
-    type: 'adjustment';
+    type: 'adjustment' | 'cancel';
     salesperson_id: string;
     sales_order_id: string;
-    description: string;
+    description?: string;
     value: string;
 }
 
