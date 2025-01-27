@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import SplashScreenComponent from '../components/SplashScreen';
-import { View } from 'react-native';
+import { View, useColorScheme, StatusBar } from 'react-native';
 import { Provider } from 'react-redux';
 import { store } from '../store/store';
 import Toast, { BaseToast, ErrorToast, ToastProps } from 'react-native-toast-message';
@@ -44,6 +44,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     // Hide splash screen after a delay
@@ -57,11 +58,25 @@ export default function RootLayout() {
   }, []);
 
   if (showSplash) {
-    return <SplashScreenComponent />;
+    return (
+      <>
+        <StatusBar
+          barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+          backgroundColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+          translucent
+        />
+        <SplashScreenComponent />
+      </>
+    );
   }
 
   return (
     <>
+      <StatusBar
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+        translucent
+      />
       <Provider store={store}>
         <Stack screenOptions={{
           headerShown: false,

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Dimensions, Alert } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import type { CameraCapturedPicture } from 'expo-camera';
 import UploadIcon from '../../../../assets/icons/upload.svg';
@@ -7,6 +7,9 @@ import RetakeIcon from '../../../../assets/icons/retake.svg';
 import { BlurView } from 'expo-blur';
 import RecordPaymentModal from './RecordPaymentModal';
 import styles from '@/app/styles/components/uploadInvoiced';
+import { attachImage } from '@/api/endpoints';
+import { RootState } from '@/store/store';
+import { useSelector } from 'react-redux';
 
 interface UploadInvoiceModalProps {
   shopName: string;
@@ -20,10 +23,15 @@ interface UploadInvoiceModalProps {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SCAN_AREA_WIDTH = SCREEN_WIDTH * 0.85;
-const SCAN_AREA_HEIGHT = SCAN_AREA_WIDTH * 1.4; // A4 ratio approximately
+const SCAN_AREA_HEIGHT = SCAN_AREA_WIDTH * 1.4;
 
 const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+const generateUniqueFilename = (orderId: string) => {
+  const timestamp = new Date().getTime();
+  return `invoice_${orderId}_${timestamp}.jpg`;
 };
 
 const UploadInvoiceModal = ({
@@ -35,12 +43,14 @@ const UploadInvoiceModal = ({
   onUpload,
   onAcceptPayment,
 }: UploadInvoiceModalProps) => {
+  const orderId = useSelector((state: RootState) => state.user.orderId);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [capturedImage, setCapturedImage] = useState<CameraCapturedPicture | null>(null);
   const [showRecordPayment, setShowRecordPayment] = useState(false);
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(true);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const [imageFilename, setImageFilename] = useState<string>('');
 
   const handleUploadPress = async () => {
     if (!permission?.granted) {
@@ -55,13 +65,22 @@ const UploadInvoiceModal = ({
   const handleTakePicture = async () => {
     if (cameraRef.current) {
       try {
-        const photo = await cameraRef.current.takePictureAsync();
+        const photo = await cameraRef.current.takePictureAsync({
+          base64: true,
+          quality: 0.7,
+        });
         if (photo) {
+          const filename = generateUniqueFilename(orderId);
+          setImageFilename(filename);
           setCapturedImage(photo);
           setIsCameraVisible(false);
         }
       } catch (error) {
-        console.error('Error taking picture:', error);
+        Alert.alert(
+          'Error',
+          'Failed to capture image. Please try again.',
+          [{ text: 'OK' }]
+        );
       }
     }
   };
@@ -71,9 +90,74 @@ const UploadInvoiceModal = ({
     setIsCameraVisible(true);
   };
 
-  const handleAcceptPayment = () => {
-    setShowRecordPayment(true);
-    setIsUploadModalVisible(false);
+  const handleAcceptPayment = async () => {
+    try {
+      if (!orderId) {
+        Alert.alert(
+          'Error',
+          'Order ID is missing. Please try again.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      if (capturedImage && capturedImage.base64 && imageFilename) {
+        const validOrderId = orderId.toString().trim();
+        if (!validOrderId || isNaN(Number(validOrderId))) {
+          Alert.alert(
+            'Error',
+            'Invalid Order ID format',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+
+        const response = await attachImage({
+          sales_order_id: validOrderId,
+          image_base64: capturedImage.base64,
+          filename: imageFilename
+        });
+        
+        if (response?.result?.error) {
+          Alert.alert(
+            'Upload Failed',
+            response.result.error || 'Failed to upload invoice image',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+
+        if (!response?.result?.attachment_id) {
+          Alert.alert(
+            'Upload Failed',
+            'Failed to upload invoice image',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+
+        Alert.alert(
+          'Success',
+          'Invoice image uploaded successfully',
+          [{ text: 'OK' }]
+        );
+        
+        setShowRecordPayment(true);
+        setIsUploadModalVisible(false);
+      } else {
+        Alert.alert(
+          'Error',
+          'Missing required image data. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'Failed to upload invoice image. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   const handlePaymentSubmit = (paymentType: string, amount: number) => {
@@ -230,7 +314,5 @@ const UploadInvoiceModal = ({
     </>
   );
 };
-
-
 
 export default UploadInvoiceModal;

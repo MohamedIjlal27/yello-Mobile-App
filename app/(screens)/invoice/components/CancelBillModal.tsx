@@ -49,11 +49,14 @@ const CancelBillModal = ({
 
   const reasons = [
     'Select Reason',
-    'Damaged Products',
-    'Wrong Quantity',
-    'Price Mismatch',
-    'Quality Issues',
-    'Other'
+    'Shop Closed',
+    'Rate difference due to scheme',
+    'Owner Not Available in the shop',
+    'Outlet Payment Issue',
+    'No order from retailer',
+    'Low bill value',
+    'Duplicate order',
+    'Delivery rejected by the retailer'
   ];
 
   const handleDiscountPress = () => {
