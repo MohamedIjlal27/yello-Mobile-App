@@ -283,6 +283,65 @@ const styles = StyleSheet.create({
     blurContainer: {
       flex: 1,
     },
+    dropdownContainer: {
+      flex: 1,
+      position: 'relative',
+    },
+    dropdownButton: {
+      height: 40,
+      backgroundColor: '#F9FAFB',
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: '#E5E7EB',
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    dropdownButtonText: {
+      fontSize: 14,
+      color: '#374151',
+      flex: 1,
+      marginRight: 8,
+    },
+    polygonIconContainer: {
+      transform: [{ rotate: '0deg' }],
+    },
+    polygonIconRotated: {
+      transform: [{ rotate: '180deg' }],
+    },
+    dropdownList: {
+      position: 'absolute',
+      top: '100%',
+      right: 10,
+      left: 0,
+      width: '99%',
+      height: 125,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 8,
+      marginTop: 4,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+      zIndex: 1000,
+    },
+    dropdownScroll: {
+      maxHeight: 150,
+    },
+    dropdownItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#E5E7EB',
+    },
+    dropdownItemText: {
+      fontSize: 14,
+      color: '#374151',
+    },
   }); 
 
   export default styles; 

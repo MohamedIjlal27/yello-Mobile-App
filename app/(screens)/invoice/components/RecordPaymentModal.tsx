@@ -8,13 +8,15 @@ import {
   Image,
   Dimensions,
   ScrollView,
-  Modal
+  Modal,
+  Pressable
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import type { CameraCapturedPicture } from 'expo-camera';
 import styles from '@/app/styles/components/recordPaymentMethod';
+import PolygonIcon from '../../../../assets/icons/Polygon.svg';
 
 // Icons
 import CashIcon from '../../../../assets/icons/invoiceCash.svg';
@@ -42,6 +44,19 @@ interface ChequeDetails {
   chequeImage?: string;
 }
 
+interface OnlineDetails {
+  accountNumber: string;
+  receiptImage?: string;
+}
+
+// Add account number options
+const ACCOUNT_NUMBERS = [
+  { id: '1', number: '8217003589', bank: 'Commercial Bank' },
+  { id: '2', number: '7156982430', bank: 'Sampath Bank' },
+  { id: '3', number: '9304521678', bank: 'HNB Bank' },
+  { id: '4', number: '6549873210', bank: 'BOC Bank' }
+];
+
 const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
@@ -62,15 +77,20 @@ export default function RecordPaymentModal({
     accountNumber: '',
     chequeImage: undefined
   });
+  const [onlineDetails, setOnlineDetails] = useState<OnlineDetails>({
+    accountNumber: '',
+    receiptImage: undefined
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [capturedImage, setCapturedImage] = useState<CameraCapturedPicture | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
 
   const handlePaymentTypeSelect = (type: PaymentType) => {
     setSelectedPaymentType(type);
-    // Reset image and cheque details when switching payment types
+    // Reset image and payment details when switching payment types
     setCapturedImage(null);
     setChequeDetails({
       chequeNumber: '',
@@ -78,11 +98,17 @@ export default function RecordPaymentModal({
       accountNumber: '',
       chequeImage: undefined
     });
+    setOnlineDetails({
+      accountNumber: '',
+      receiptImage: undefined
+    });
   };
 
   const handleSubmit = () => {
     if (selectedPaymentType === 'Cheque') {
       onSubmit(selectedPaymentType, Number(paymentAmount), chequeDetails);
+    } else if (selectedPaymentType === 'Online') {
+      onSubmit(selectedPaymentType, Number(paymentAmount), onlineDetails);
     } else {
       onSubmit(selectedPaymentType, Number(paymentAmount));
     }
@@ -178,16 +204,48 @@ export default function RecordPaymentModal({
           />
         </View>
 
-        {/* Account Number */}
+        {/* Account Number Dropdown */}
         <View style={styles.fieldRow}>
           <Text style={styles.fieldLabel}>Account Number<Text style={styles.required}>*</Text></Text>
-          <TextInput
-            style={styles.textInput}
-            value={chequeDetails.accountNumber}
-            onChangeText={(text) => setChequeDetails(prev => ({ ...prev, accountNumber: text }))}
-            placeholder="8217003589"
-            keyboardType="numeric"
-          />
+          <View style={styles.dropdownContainer}>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => setShowAccountDropdown(!showAccountDropdown)}
+            >
+              <Text style={styles.dropdownButtonText} numberOfLines={1}>
+                {chequeDetails.accountNumber ? 
+                  ACCOUNT_NUMBERS.find(acc => acc.number === chequeDetails.accountNumber)?.bank + ' - ' + chequeDetails.accountNumber 
+                  : 'Select Account Number'}
+              </Text>
+              <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
+                <PolygonIcon width={12} height={12} fill="#374151" />
+              </View>
+            </TouchableOpacity>
+            {showAccountDropdown && (
+              <View style={styles.dropdownList}>
+                <ScrollView 
+                  style={styles.dropdownScroll}
+                  showsVerticalScrollIndicator={true}
+                  nestedScrollEnabled={true}
+                >
+                  {ACCOUNT_NUMBERS.map((account) => (
+                    <TouchableOpacity
+                      key={account.id}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setChequeDetails(prev => ({ ...prev, accountNumber: account.number }));
+                        setShowAccountDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownItemText} numberOfLines={1}>
+                        {account.bank} - {account.number}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Image Upload */}
@@ -237,6 +295,50 @@ export default function RecordPaymentModal({
             keyboardType="numeric"
             placeholder="54,752.85"
           />
+        </View>
+
+        {/* Account Number Dropdown */}
+        <View style={styles.fieldRow}>
+          <Text style={styles.fieldLabel}>Account Number<Text style={styles.required}>*</Text></Text>
+          <View style={styles.dropdownContainer}>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => setShowAccountDropdown(!showAccountDropdown)}
+            >
+              <Text style={styles.dropdownButtonText} numberOfLines={1}>
+                {onlineDetails.accountNumber ? 
+                  ACCOUNT_NUMBERS.find(acc => acc.number === onlineDetails.accountNumber)?.bank + ' - ' + onlineDetails.accountNumber 
+                  : 'Select Account Number'}
+              </Text>
+              <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
+                <PolygonIcon width={12} height={12} fill="#374151" />
+              </View>
+            </TouchableOpacity>
+            {showAccountDropdown && (
+              <View style={styles.dropdownList}>
+                <ScrollView 
+                  style={styles.dropdownScroll}
+                  showsVerticalScrollIndicator={true}
+                  nestedScrollEnabled={true}
+                >
+                  {ACCOUNT_NUMBERS.map((account) => (
+                    <TouchableOpacity
+                      key={account.id}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setOnlineDetails(prev => ({ ...prev, accountNumber: account.number }));
+                        setShowAccountDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownItemText} numberOfLines={1}>
+                        {account.bank} - {account.number}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Receipt Upload */}
