@@ -6,6 +6,11 @@
     "orientation": "portrait",
     "scheme": "YeLo",
     "userInterfaceStyle": "automatic",
+    "androidStatusBar": {
+      "backgroundColor": "#000000",
+      "translucent": true,
+      "barStyle": "light-content"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
