@@ -92,12 +92,30 @@ interface DiscountAdjustmentResponse {
     };
 }
 
+// Image Attachment interfaces
+interface ImageAttachmentParams {
+    sales_order_id: string;
+    image_base64: string;
+    filename: string;
+}
+
+interface ImageAttachmentResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        message?: string;
+        attachment_id?: number;
+        error?: string;
+    };
+}
+
 // Endpoint paths
 export const ENDPOINTS = {
     INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
     LOGIN: `${API_BASE_URL}/login`,
     SET_BIOMETRIC: `${API_BASE_URL}/setbiometric`,
     DISCOUNT_ADJUSTMENT: `${API_BASE_URL}/sales-order/cancel`,
+    ATTACH_IMAGE: `${API_BASE_URL}/sales-order/attach-image`,
 };
 
 // Type for invoice receipts params
@@ -239,6 +257,49 @@ export const applyDiscountAdjustment = async (params: DiscountAdjustmentParams):
 
         return data;
     } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
+// Function to attach image
+export const attachImage = async (params: ImageAttachmentParams): Promise<ImageAttachmentResponse> => {
+    try {
+        console.log('Sending request with params:', {
+            sales_order_id: params.sales_order_id,
+            filename: params.filename
+        });
+        
+        const response = await fetch(ENDPOINTS.ATTACH_IMAGE, {
+            method: 'POST',
+            headers: DEFAULT_HEADERS,
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                params: {
+                    sales_order_id: parseInt(params.sales_order_id),
+                    image_base64: params.image_base64,
+                    filename: params.filename
+                }
+            }),
+        });
+        
+        const data = await response.json();
+        console.log('Raw API Response:', data);
+
+        if (!response.ok) {
+            throw new Error(data.error?.message || API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        if (!data || !data.result) {
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
         if (error instanceof Error) {
             throw error;
         }

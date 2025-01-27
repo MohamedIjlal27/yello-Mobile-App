@@ -12,8 +12,10 @@ export const REQUEST_TIMEOUT = 30000;
 
 // Error messages
 export const API_ERROR_MESSAGES = {
-    NETWORK_ERROR: 'Network error. Please check your internet connection.',
+    NETWORK_ERROR: 'Network error occurred',
     TIMEOUT: 'Request timed out. Please try again.',
-    SERVER_ERROR: 'Server error. Please try again later.',
-    INVALID_RESPONSE: 'Invalid response from server.',
+    SERVER_ERROR: 'Server error occurred',
+    INVALID_RESPONSE: 'Invalid response from server',
+    INVALID_CREDENTIALS: 'Invalid credentials',
+    USER_NOT_FOUND: 'User not found'
 }; 

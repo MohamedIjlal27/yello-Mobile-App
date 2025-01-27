@@ -70,6 +70,7 @@ export default function InvoiceReceiptsScreen() {
 
   const handlePay = (index: number) => {
     setSelectedInvoice(index);
+    dispatch(setOrderId(orders[index].order_id.toString()));
     setIsPayModalVisible(true);
   };
 
@@ -120,6 +121,7 @@ export default function InvoiceReceiptsScreen() {
   };
 
   const handleClosePayModal = () => {
+    dispatch(setOrderId(''));
     setIsPayModalVisible(false);
     setSelectedInvoice(null);
   };
