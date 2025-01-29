@@ -75,7 +75,7 @@ const CancelBillModal = ({
     <View style={styles.overlay}>
       <View style={[
         styles.modalContainer,
-        isDropdownOpen && styles.modalContainerExtended
+        (isDropdownOpen || selectedOption === 'cancel') && styles.modalContainerExtended
       ]}>
         {/* Warning Icon and Title */}
         <View style={styles.header}>
@@ -241,7 +241,5 @@ const CancelBillModal = ({
     </View>
   );
 };
-
-
 
 export default CancelBillModal; 

@@ -17,10 +17,10 @@ const styles = StyleSheet.create({
       padding: 20,
       width: '90%',
       maxWidth: 400,
-      height: 500,
+      height: 450,
     },
     modalContainerExtended: {
-      height: 700,
+      height: 600,
     },
     header: {
       flexDirection: 'row',
