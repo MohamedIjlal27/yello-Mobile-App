@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import type { CameraCapturedPicture } from 'expo-camera';
 import UploadIcon from '../../../../assets/icons/upload.svg';
 import RetakeIcon from '../../../../assets/icons/retake.svg';
 import { BlurView } from 'expo-blur';
 import RecordPaymentModal from './RecordPaymentModal';
-import styles from '@/app/styles/components/uploadInvoiced';
+import baseStyles from '@/app/styles/components/uploadInvoiced';
 import { attachImage } from '@/api/endpoints';
 import { RootState } from '@/store/store';
 import { useSelector } from 'react-redux';
@@ -51,6 +51,7 @@ const UploadInvoiceModal = ({
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [imageFilename, setImageFilename] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleUploadPress = async () => {
     if (!permission?.granted) {
@@ -112,6 +113,8 @@ const UploadInvoiceModal = ({
           return;
         }
 
+        setIsUploading(true);
+
         const response = await attachImage({
           sales_order_id: validOrderId,
           image_base64: capturedImage.base64,
@@ -119,6 +122,7 @@ const UploadInvoiceModal = ({
         });
         
         if (response?.result?.error) {
+          setIsUploading(false);
           Alert.alert(
             'Upload Failed',
             response.result.error || 'Failed to upload invoice image',
@@ -128,6 +132,7 @@ const UploadInvoiceModal = ({
         }
 
         if (!response?.result?.attachment_id) {
+          setIsUploading(false);
           Alert.alert(
             'Upload Failed',
             'Failed to upload invoice image',
@@ -136,6 +141,7 @@ const UploadInvoiceModal = ({
           return;
         }
 
+        setIsUploading(false);
         Alert.alert(
           'Success',
           'Invoice image uploaded successfully',
@@ -152,6 +158,7 @@ const UploadInvoiceModal = ({
         );
       }
     } catch (error) {
+      setIsUploading(false);
       Alert.alert(
         'Error',
         'Failed to upload invoice image. Please try again.',
@@ -172,15 +179,15 @@ const UploadInvoiceModal = ({
 
   const renderScannerOverlay = () => {
     return (
-      <View style={styles.scannerOverlay}>
-        <View style={styles.scanArea}>
+      <View style={baseStyles.scannerOverlay}>
+        <View style={baseStyles.scanArea}>
           {/* Corner Guidelines */}
-          <View style={[styles.corner, styles.cornerTopLeft]} />
-          <View style={[styles.corner, styles.cornerTopRight]} />
-          <View style={[styles.corner, styles.cornerBottomLeft]} />
-          <View style={[styles.corner, styles.cornerBottomRight]} />
+          <View style={[baseStyles.corner, baseStyles.cornerTopLeft]} />
+          <View style={[baseStyles.corner, baseStyles.cornerTopRight]} />
+          <View style={[baseStyles.corner, baseStyles.cornerBottomLeft]} />
+          <View style={[baseStyles.corner, baseStyles.cornerBottomRight]} />
           
-          <Text style={styles.scanText}>
+          <Text style={baseStyles.scanText}>
             Position your invoice within the frame
           </Text>
         </View>
@@ -195,48 +202,58 @@ const UploadInvoiceModal = ({
   return (
     <>
       {isUploadModalVisible && (
-        <View style={styles.overlay}>
-          <View style={styles.modalContainer}>
+        <View style={baseStyles.overlay}>
+          <View style={baseStyles.modalContainer}>
             {/* Header with close button */}
-            <View style={styles.header}>
-              <Text style={styles.title}>Upload Invoice</Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <View style={baseStyles.header}>
+              <Text style={baseStyles.title}>Upload Invoice</Text>
+              <TouchableOpacity onPress={onClose} style={baseStyles.closeButton}>
                 <Image
                   source={require('../../../../assets/icons/close.png')}
-                  style={styles.closeIcon}
+                  style={baseStyles.closeIcon}
                 />
               </TouchableOpacity>
             </View>
 
             {/* Shop Details */}
-            <View style={styles.shopDetails}>
-              <View style={styles.shopInfoContainer}>
-                <Text style={styles.shopName}>{shopName}</Text>
-                <View style={styles.paymentDetails}>
-                  <Text style={styles.paymentType}>{paymentType}</Text>
-                  <Text style={styles.separator}>|</Text>
-                  <Text style={styles.dueDate}>{dueDate}</Text>
+            <View style={baseStyles.shopDetails}>
+              <View style={baseStyles.shopInfoContainer}>
+                <Text style={baseStyles.shopName}>{shopName}</Text>
+                <View style={baseStyles.paymentDetails}>
+                  <Text style={baseStyles.paymentType}>{paymentType}</Text>
+                  <Text style={baseStyles.separator}>|</Text>
+                  <Text style={baseStyles.dueDate}>{dueDate}</Text>
                 </View>
               </View>
-              <Text style={styles.amount}>LKR {formatAmount(amount)}</Text>
+              <Text style={baseStyles.amount}>LKR {formatAmount(amount)}</Text>
             </View>
 
             {/* Image Preview */}
             {capturedImage && (
-              <View style={styles.previewContainer}>
+              <View style={baseStyles.previewContainer}>
                 <Image 
                   source={{ uri: capturedImage.uri }} 
-                  style={styles.previewImage}
+                  style={baseStyles.previewImage}
                   resizeMode="contain"
                 />
+              </View>
+            )}
+
+            {/* Loading Overlay */}
+            {isUploading && (
+              <View style={additionalStyles.loadingOverlay}>
+                <View style={additionalStyles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#10B981" />
+                  <Text style={additionalStyles.loadingText}>Uploading invoice...</Text>
+                </View>
               </View>
             )}
 
             {/* Upload/Retake Button */}
             <TouchableOpacity 
               style={[
-                styles.uploadButton,
-                capturedImage ? styles.retakeButton : null
+                baseStyles.uploadButton,
+                capturedImage ? baseStyles.retakeButton : null
               ]} 
               onPress={capturedImage ? handleRetake : handleUploadPress}
             >
@@ -246,8 +263,8 @@ const UploadInvoiceModal = ({
                 <UploadIcon width={24} height={24} fill="#374151" />
               )}
               <Text style={[
-                styles.uploadText,
-                capturedImage ? styles.retakeText : null
+                baseStyles.uploadText,
+                capturedImage ? baseStyles.retakeText : null
               ]}>
                 {capturedImage ? 'Retake' : 'Upload Invoice'}
               </Text>
@@ -256,16 +273,21 @@ const UploadInvoiceModal = ({
             {/* Accept Payment Button */}
             <TouchableOpacity 
               style={[
-                styles.acceptButton,
-                capturedImage ? styles.acceptButtonWithImage : styles.acceptButtonDisabled
+                baseStyles.acceptButton,
+                capturedImage ? baseStyles.acceptButtonWithImage : baseStyles.acceptButtonDisabled,
+                isUploading && baseStyles.acceptButtonDisabled
               ]} 
               onPress={handleAcceptPayment}
-              disabled={!capturedImage}
+              disabled={!capturedImage || isUploading}
             >
-              <Text style={[
-                styles.acceptText,
-                !capturedImage && styles.acceptTextDisabled
-              ]}>ACCEPT PAYMENT</Text>
+              {isUploading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={[
+                  baseStyles.acceptText,
+                  !capturedImage && baseStyles.acceptTextDisabled
+                ]}>ACCEPT PAYMENT</Text>
+              )}
             </TouchableOpacity>
 
             {/* Camera Modal */}
@@ -274,25 +296,25 @@ const UploadInvoiceModal = ({
               transparent={true}
               animationType="slide"
             >
-              <BlurView intensity={70} style={styles.blurContainer}>
-                <View style={styles.cameraContainer}>
+              <BlurView intensity={70} style={baseStyles.blurContainer}>
+                <View style={baseStyles.cameraContainer}>
                   <CameraView 
                     ref={cameraRef}
-                    style={styles.camera} 
+                    style={baseStyles.camera} 
                     facing="back"
                   >
-                    <View style={styles.cameraControls}>
+                    <View style={baseStyles.cameraControls}>
                       <TouchableOpacity 
-                        style={styles.closeCamera} 
+                        style={baseStyles.closeCamera} 
                         onPress={() => setIsCameraVisible(false)}
                       >
-                        <Text style={styles.closeCameraText}>Close</Text>
+                        <Text style={baseStyles.closeCameraText}>Close</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
-                        style={styles.captureButton}
+                        style={baseStyles.captureButton}
                         onPress={handleTakePicture}
                       >
-                        <View style={styles.captureCircle} />
+                        <View style={baseStyles.captureCircle} />
                       </TouchableOpacity>
                     </View>
                   </CameraView>
@@ -314,5 +336,42 @@ const UploadInvoiceModal = ({
     </>
   );
 };
+
+// Add these styles to your existing styles
+const additionalStyles = StyleSheet.create({
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500',
+  },
+});
+
+const styles = { ...baseStyles, ...additionalStyles };
 
 export default UploadInvoiceModal;

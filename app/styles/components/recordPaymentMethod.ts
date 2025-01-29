@@ -145,16 +145,16 @@ const styles = StyleSheet.create({
       color: '#374151',
     },
     chequeFieldsContainer: {
-      marginTop: 8,
-      marginBottom: 24,
+      marginTop: 4,
+      marginBottom: 16,
       borderTopWidth: 1,
       borderTopColor: '#E5E7EB',
-      paddingTop: 16,
+      paddingTop: 12,
     },
     fieldRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 10,
+      marginBottom: 8,
       gap: 8,
     },
     fieldLabel: {
@@ -248,13 +248,12 @@ const styles = StyleSheet.create({
     },
     cameraControls: {
       position: 'absolute',
-      bottom: 40,
-      left: 0,
-      right: 0,
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      paddingHorizontal: 20,
+    },
+    errorText: {
+      color: '#EF4444',
+      fontSize: 14,
+      padding: 12,
+      textAlign: 'center',
     },
     closeCamera: {
       padding: 15,
