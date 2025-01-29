@@ -189,11 +189,14 @@ const UploadInvoiceModal = ({
         Alert.alert(
           'Success',
           'Invoice image uploaded successfully',
-          [{ text: 'OK' }]
+          [{ 
+            text: 'OK',
+            onPress: () => {
+              onUpload(); // Call onUpload to update the uploadedInvoices state
+              onAcceptPayment(); // Call onAcceptPayment to show the RecordPaymentModal
+            }
+          }]
         );
-        
-        setShowRecordPayment(true);
-        setIsUploadModalVisible(false);
       } else {
         Alert.alert(
           'Error',

@@ -101,7 +101,6 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
               <Text style={styles.date}>{date}</Text>
             </View>
           </View>
-          <View style={styles.verticalSeparator} />
           <View style={styles.amountSection}>
             <Text style={styles.currency}>LKR</Text>
             <Text style={styles.amount}>{formatAmount(amount)}</Text>

@@ -19,40 +19,8 @@ const CURRENT_VERSION = 2;
 // Initialize database tables
 export const initDatabase = () => {
   try {
-    // Get current database version
-    const versionResult = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
-    const currentDbVersion = versionResult?.user_version || 0;
-
-    if (currentDbVersion < CURRENT_VERSION) {
-      // Drop existing tables if they exist
-      db.execSync(`
-        DROP TABLE IF EXISTS bank_accounts;
-        DROP TABLE IF EXISTS customer_accounts;
-      `);
-
-      // Create new tables with updated schema
-      db.execSync(`
-        CREATE TABLE IF NOT EXISTS bank_accounts (
-          id TEXT PRIMARY KEY NOT NULL,
-          value TEXT NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS customer_accounts (
-          id TEXT PRIMARY KEY NOT NULL,
-          value TEXT NOT NULL
-        );
-      `);
-
-      // Update database version
-      db.execSync(`PRAGMA user_version = ${CURRENT_VERSION}`);
-    }
-  } catch (error) {
-    console.error('Database initialization error:', error);
-    // If there's an error, try to recreate the tables
+    // Create tables if they don't exist (this is safer than dropping and recreating)
     db.execSync(`
-      DROP TABLE IF EXISTS bank_accounts;
-      DROP TABLE IF EXISTS customer_accounts;
-
       CREATE TABLE IF NOT EXISTS bank_accounts (
         id TEXT PRIMARY KEY NOT NULL,
         value TEXT NOT NULL
@@ -63,8 +31,25 @@ export const initDatabase = () => {
         value TEXT NOT NULL
       );
 
-      PRAGMA user_version = ${CURRENT_VERSION};
+      CREATE TABLE IF NOT EXISTS uploaded_invoices (
+        order_id INTEGER PRIMARY KEY NOT NULL,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
+
+    // Get current database version
+    const versionResult = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
+    const currentDbVersion = versionResult?.user_version || 0;
+
+    if (currentDbVersion < CURRENT_VERSION) {
+      // Update database version
+      db.execSync(`PRAGMA user_version = ${CURRENT_VERSION}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    throw error;
   }
 };
 
@@ -125,4 +110,31 @@ export const insertCustomerAccounts = (accounts: string[]) => {
 
 export const getCustomerAccounts = (): CustomerAccount[] => {
   return db.getAllSync('SELECT * FROM customer_accounts');
+};
+
+// Uploaded Invoices Operations
+export const markInvoiceAsUploaded = (orderId: number) => {
+  const statement = db.prepareSync(
+    'INSERT OR REPLACE INTO uploaded_invoices (order_id) VALUES (?)'
+  );
+  try {
+    statement.executeSync([orderId]);
+  } finally {
+    statement.finalizeSync();
+  }
+};
+
+export const isInvoiceUploaded = (orderId: number): boolean => {
+  const result = db.getFirstSync<{ order_id: number }>(
+    'SELECT order_id FROM uploaded_invoices WHERE order_id = ?',
+    [orderId]
+  );
+  return !!result;
+};
+
+export const getUploadedInvoices = (): Set<number> => {
+  const results = db.getAllSync<{ order_id: number }>(
+    'SELECT order_id FROM uploaded_invoices'
+  );
+  return new Set(results.map(row => row.order_id));
 }; 

@@ -146,6 +146,10 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       marginLeft: spacing.md,
+      paddingLeft: spacing.md,
+      paddingVertical: spacing.sm,
+      borderLeftWidth: 1,
+      borderLeftColor: '#E5E7EB',
     },
     currency: {
       fontSize: typography.body,

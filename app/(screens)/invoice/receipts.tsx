@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator, Text, RefreshControl } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Text, RefreshControl, Alert } from 'react-native';
 import CustomSearchBar from '../../../components/ui/CustomSearchBar';
 import InvoiceCard from './components/ReceiptInvoiceCard';
 import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
+import RecordPaymentModal from './components/RecordPaymentModal';
 import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../../store/store';
 import { setOrderId } from '../../../store/userSlice';
+import { getUploadedInvoices, markInvoiceAsUploaded, isInvoiceUploaded, initDatabase } from '../../../store/database';
 import styles from '@/app/styles/invoiceReceipt/styles';
 
 const formatDate = (date: Date): string => {
@@ -25,15 +27,50 @@ export default function InvoiceReceiptsScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPayModalVisible, setIsPayModalVisible] = useState(false);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+  const [showRecordPayment, setShowRecordPayment] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [uploadedInvoices, setUploadedInvoices] = useState<Set<number>>(new Set());
   const dispatch = useDispatch();
   const userId = useSelector((state: RootState) => state.user.userId);
 
+  // Separate database initialization
   useEffect(() => {
-    loadInvoiceReceipts();
+    const initDb = () => {
+      try {
+        initDatabase();
+      } catch (error) {
+        console.error('Database initialization error:', error);
+        setError('Failed to initialize database');
+      }
+    };
+    initDb();
+  }, []);
+
+  // Separate data loading
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Load uploaded invoices
+        const uploaded = getUploadedInvoices();
+        setUploadedInvoices(uploaded);
+        
+        // Load invoice receipts
+        await loadInvoiceReceipts();
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setError('Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const loadInvoiceReceipts = async () => {
@@ -69,9 +106,22 @@ export default function InvoiceReceiptsScreen() {
   };
 
   const handlePay = (index: number) => {
-    setSelectedInvoice(index);
-    dispatch(setOrderId(orders[index].order_id.toString()));
-    setIsPayModalVisible(true);
+    try {
+      const order = orders[index];
+      if (!isInvoiceUploaded(order.order_id)) {
+        // Show upload invoice modal if invoice hasn't been uploaded
+        setSelectedInvoice(index);
+        dispatch(setOrderId(order.order_id.toString()));
+        setIsPayModalVisible(true);
+      } else {
+        // Show record payment modal if invoice has been uploaded
+        setSelectedInvoice(index);
+        setShowRecordPayment(true);
+      }
+    } catch (error) {
+      console.error('Error in handlePay:', error);
+      Alert.alert('Error', 'Failed to process payment. Please try again.');
+    }
   };
 
   const handleLocate = () => {
@@ -127,13 +177,31 @@ export default function InvoiceReceiptsScreen() {
   };
 
   const handleUploadInvoice = () => {
-    // Implement upload logic
+    try {
+      if (selectedInvoice !== null) {
+        const orderId = orders[selectedInvoice].order_id;
+        markInvoiceAsUploaded(orderId);
+        setUploadedInvoices(prev => new Set([...prev, orderId]));
+      }
+    } catch (error) {
+      console.error('Error in handleUploadInvoice:', error);
+      Alert.alert('Error', 'Failed to mark invoice as uploaded.');
+    }
   };
 
   const handleAcceptPayment = () => {
-    // Implement payment acceptance logic
-    setIsPayModalVisible(false);
-    setSelectedInvoice(null);
+    try {
+      if (selectedInvoice !== null) {
+        const orderId = orders[selectedInvoice].order_id;
+        markInvoiceAsUploaded(orderId);
+        setUploadedInvoices(prev => new Set([...prev, orderId]));
+        setIsPayModalVisible(false);
+        setShowRecordPayment(true);
+      }
+    } catch (error) {
+      console.error('Error in handleAcceptPayment:', error);
+      Alert.alert('Error', 'Failed to process payment acceptance.');
+    }
   };
 
   return (
@@ -219,6 +287,26 @@ export default function InvoiceReceiptsScreen() {
           onAcceptPayment={handleAcceptPayment}
         />
       )}
+
+      {selectedInvoice !== null && showRecordPayment && (
+        <RecordPaymentModal
+          visible={showRecordPayment}
+          shopName={orders[selectedInvoice].customer.name}
+          dueDate="21 Days"
+          amount={orders[selectedInvoice].total_amount}
+          orderId={orders[selectedInvoice].order_id}
+          onClose={() => {
+            setShowRecordPayment(false);
+            setSelectedInvoice(null);
+          }}
+          onSubmit={(paymentType, amount, additionalData) => {
+            // Handle payment submission
+            setShowRecordPayment(false);
+            setSelectedInvoice(null);
+          }}
+        />
+      )}
+
       {selectedInvoice !== null && isCancelModalVisible && (
         <CancelBillModal
           invoiceNo={orders[selectedInvoice].order_number.toString()}

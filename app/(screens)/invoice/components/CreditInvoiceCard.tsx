@@ -6,9 +6,16 @@ import PayIcon from '../../../../assets/icons/pay.svg'
 import LocationIcon from '../../../../assets/icons/location.svg'
 import styles from '@/app/styles/components/creditInvoiceCard';
 
+interface AddressProps {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+}
+
 interface CreditInvoiceCard {
   shopName: string;
-  address: string;
+  address: AddressProps;
   invoiceNumber: string;
   date?: string;
   amount: number;
@@ -22,7 +29,7 @@ const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-export default function CreditInvoiceCard({
+const CreditInvoiceCard: React.FC<CreditInvoiceCard> = ({
   shopName,
   address,
   invoiceNumber,
@@ -31,21 +38,49 @@ export default function CreditInvoiceCard({
   onPay,
   onLocate,
   onPress,
-  onCancel
-}: CreditInvoiceCard) {
+  onCancel,
+}) => {
+  const MAX_CHARS_PER_LINE = 30;
+
+  const formatAddress = (address: AddressProps) => {
+    // Filter out empty or undefined parts and remove duplicates
+    const parts = [...new Set([
+      address.street,
+      address.city,
+      address.state,
+      address.postalCode
+    ].filter(Boolean))];
+    
+    return (
+      <Text style={styles.addressText}>
+        {parts.map((part, index) => {
+          if (part && part.length > MAX_CHARS_PER_LINE) {
+            const lines = part.match(new RegExp(`.{1,${MAX_CHARS_PER_LINE}}`, 'g')) || [part];
+            return lines.map((line, lineIndex) => 
+              `${line.trim()}${(lineIndex < lines.length - 1 || index < parts.length - 1) ? '\n' : ''}`
+            ).join('');
+          }
+          return `${part}${index < parts.length - 1 ? '\n' : ''}`;
+        }).join('')}
+      </Text>
+    );
+  };
+
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress}>
       {/* Shop Info Section */}
       <View style={styles.shopSection}>
         <View style={styles.shopInfo}>
           <ShopIcon width={24} height={24} style={styles.shopIcon} />
-          <View>
+          <View style={styles.shopDetailsContainer}>
             <Text style={styles.shopName}>{shopName}</Text>
-            <Text style={styles.address}>{address}</Text>
+            <View style={styles.address}>
+              {formatAddress(address)}
+            </View>
           </View>
         </View>
-        <TouchableOpacity onPress={onLocate} style={styles.locateButton}>
-          <LocationIcon width={24} height={24} style={styles.locateIcon} />
+        <TouchableOpacity style={styles.locateButton} onPress={onLocate}>
+          <LocationIcon width={14} height={18} style={styles.locateIcon} />
           <Text style={styles.locateText}>Locate</Text>
         </TouchableOpacity>
       </View>
@@ -58,14 +93,13 @@ export default function CreditInvoiceCard({
         <View style={styles.invoiceInfo}>
           <View style={styles.invoiceLeft}>
             <TouchableOpacity onPress={onCancel}>
-              <CashIcon width={24} height={24} style={styles.CashIcon} />
+              <CashIcon width={27} height={27} style={styles.closeIcon} />
             </TouchableOpacity>
             <View>
               <Text style={styles.invoiceNumber}>{invoiceNumber}</Text>
               <Text style={styles.date}>{date}</Text>
             </View>
           </View>
-          <View style={styles.verticalSeparator} />
           <View style={styles.amountSection}>
             <Text style={styles.currency}>LKR</Text>
             <Text style={styles.amount}>{formatAmount(amount)}</Text>
@@ -78,4 +112,6 @@ export default function CreditInvoiceCard({
       </View>
     </TouchableOpacity>
   );
-}
+};
+
+export default CreditInvoiceCard;
