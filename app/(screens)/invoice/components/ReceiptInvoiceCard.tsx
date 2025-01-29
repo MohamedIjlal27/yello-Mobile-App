@@ -41,20 +41,30 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   onPress,
   onCancel,
 }) => {
+  const MAX_CHARS_PER_LINE = 30;
+
   const formatAddress = (address: AddressProps) => {
-    const parts = [
+    // Filter out empty or undefined parts and remove duplicates
+    const parts = [...new Set([
       address.street,
       address.city,
       address.state,
       address.postalCode
-    ].filter(Boolean);
+    ].filter(Boolean))];
     
-    return parts.map((part, index) => (
-      <Text key={index} style={styles.addressText}>
-        {part}
-        {index < parts.length - 1 ? '\n' : ''}
+    return (
+      <Text style={styles.addressText}>
+        {parts.map((part, index) => {
+          if (part && part.length > MAX_CHARS_PER_LINE) {
+            const lines = part.match(new RegExp(`.{1,${MAX_CHARS_PER_LINE}}`, 'g')) || [part];
+            return lines.map((line, lineIndex) => 
+              `${line.trim()}${(lineIndex < lines.length - 1 || index < parts.length - 1) ? '\n' : ''}`
+            ).join('');
+          }
+          return `${part}${index < parts.length - 1 ? '\n' : ''}`;
+        }).join('')}
       </Text>
-    ));
+    );
   };
 
   return (

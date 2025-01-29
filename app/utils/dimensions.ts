@@ -10,21 +10,21 @@ const baseHeight = 812;
 const widthScale = SCREEN_WIDTH / baseWidth;
 const heightScale = SCREEN_HEIGHT / baseHeight;
 
-export const scale = (size: number): number => {
+const scale = (size: number): number => {
   return PixelRatio.roundToNearestPixel(size * widthScale);
 };
 
-export const verticalScale = (size: number): number => {
+const verticalScale = (size: number): number => {
   return PixelRatio.roundToNearestPixel(size * heightScale);
 };
 
 // For elements that should scale moderately (like text)
-export const moderateScale = (size: number, factor = 0.5): number => {
+const moderateScale = (size: number, factor = 0.5): number => {
   return PixelRatio.roundToNearestPixel(size + (scale(size) - size) * factor);
 };
 
 // For padding and margins
-export const spacing = {
+const spacing = {
   xs: scale(4),
   sm: scale(8),
   md: scale(16),
@@ -33,7 +33,7 @@ export const spacing = {
 };
 
 // For font sizes
-export const typography = {
+const typography = {
   caption: moderateScale(12),
   body: moderateScale(14),
   title: moderateScale(16),
@@ -42,14 +42,44 @@ export const typography = {
 };
 
 // For responsive layout calculations
-export const getResponsiveWidth = (percent: number): number => {
+const getResponsiveWidth = (percent: number): number => {
   return (SCREEN_WIDTH * percent) / 100;
 };
 
-export const getResponsiveHeight = (percent: number): number => {
+const getResponsiveHeight = (percent: number): number => {
   return (SCREEN_HEIGHT * percent) / 100;
 };
 
 // Device type detection
-export const isSmallDevice = SCREEN_WIDTH < 375;
-export const isTablet = SCREEN_WIDTH >= 768;
+const isSmallDevice = SCREEN_WIDTH < 375;
+const isTablet = SCREEN_WIDTH >= 768;
+
+const dimensions = {
+  scale,
+  verticalScale,
+  moderateScale,
+  spacing,
+  typography,
+  getResponsiveWidth,
+  getResponsiveHeight,
+  isSmallDevice,
+  isTablet,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT
+};
+
+export {
+  scale,
+  verticalScale,
+  moderateScale,
+  spacing,
+  typography,
+  getResponsiveWidth,
+  getResponsiveHeight,
+  isSmallDevice,
+  isTablet,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT
+};
+
+export default dimensions;
