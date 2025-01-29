@@ -7,37 +7,30 @@ import LocationIcon from '../../../../assets/icons/location.svg'
 import RedCloseIcon from '../../../../assets/icons/redClose.svg'
 import styles from '@/app/styles/invoiceReceipt/styles';
 
-interface ReceiptInvoiceCardProps {
+interface AddressProps {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+}
+
+interface InvoiceCardProps {
   shopName: string;
-  address: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postalCode?: string;
-  };
+  address: AddressProps;
   invoiceNumber: string;
   date: string;
   amount: number;
   onPay: () => void;
   onLocate: () => void;
-  onPress?: () => void;
-  onCancel?: () => void;
+  onPress: () => void;
+  onCancel: () => void;
 }
 
 const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const formatAddress = (address: ReceiptInvoiceCardProps['address']) => {
-  const parts = [];
-  if (address.street) parts.push(address.street);
-  if (address.city) parts.push(address.city);
-  if (address.state) parts.push(address.state);
-  if (address.postalCode) parts.push(address.postalCode);
-  return parts.join(', ');
-};
-
-export default function ReceiptInvoiceCardProps({
+const InvoiceCard: React.FC<InvoiceCardProps> = ({
   shopName,
   address,
   invoiceNumber,
@@ -46,21 +39,39 @@ export default function ReceiptInvoiceCardProps({
   onPay,
   onLocate,
   onPress,
-  onCancel
-}: ReceiptInvoiceCardProps) {
+  onCancel,
+}) => {
+  const formatAddress = (address: AddressProps) => {
+    const parts = [
+      address.street,
+      address.city,
+      address.state,
+      address.postalCode
+    ].filter(Boolean);
+    
+    return parts.map((part, index) => (
+      <Text key={index} style={styles.addressText}>
+        {part}
+        {index < parts.length - 1 ? '\n' : ''}
+      </Text>
+    ));
+  };
+
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress}>
       {/* Shop Info Section */}
       <View style={styles.shopSection}>
         <View style={styles.shopInfo}>
           <ShopIcon width={24} height={24} style={styles.shopIcon} />
-          <View>
+          <View style={styles.shopDetailsContainer}>
             <Text style={styles.shopName}>{shopName}</Text>
-            <Text style={styles.address}>{formatAddress(address)}</Text>
+            <View style={styles.address}>
+              {formatAddress(address)}
+            </View>
           </View>
         </View>
-        <TouchableOpacity onPress={onLocate} style={styles.locateButton}>
-          <LocationIcon width={24} height={24} style={styles.locateIcon} />
+        <TouchableOpacity style={styles.locateButton} onPress={onLocate}>
+          <LocationIcon width={14} height={18} style={styles.locateIcon} />
           <Text style={styles.locateText}>Locate</Text>
         </TouchableOpacity>
       </View>
@@ -93,4 +104,6 @@ export default function ReceiptInvoiceCardProps({
       </View>
     </TouchableOpacity>
   );
-}
+};
+
+export default InvoiceCard;
