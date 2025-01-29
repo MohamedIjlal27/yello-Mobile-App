@@ -18,7 +18,7 @@ interface OnlinePaymentProps {
   paymentAmount: string;
   setPaymentAmount: (amount: string) => void;
   onlineDetails: OnlineDetails;
-  setOnlineDetails: (details: any) => void;
+  setOnlineDetails: (details: OnlineDetails | ((prev: OnlineDetails) => OnlineDetails)) => void;
   showAccountDropdown: boolean;
   setShowAccountDropdown: (show: boolean) => void;
   capturedImage: CameraCapturedPicture | null;
@@ -80,16 +80,16 @@ const OnlinePayment = ({
                     key={account.id}
                     style={styles.dropdownItem}
                     onPress={() => {
-                      setOnlineDetails((prev: any) => ({ 
+                      setOnlineDetails((prev: OnlineDetails) => ({ 
                         ...prev, 
-                        accountNumber: account.name,
+                        accountNumber: account.value,
                         accountId: account.id
                       }));
                       setShowAccountDropdown(false);
                     }}
                   >
                     <Text style={styles.dropdownItemText} numberOfLines={1}>
-                      {account.name}
+                      {account.value}
                     </Text>
                   </TouchableOpacity>
                 ))}

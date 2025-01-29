@@ -47,7 +47,8 @@
       "favicon": "./assets/images/yello_logo.png"
     },
     "plugins": [
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

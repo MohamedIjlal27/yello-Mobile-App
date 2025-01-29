@@ -93,13 +93,13 @@ interface DiscountAdjustmentResponse {
 }
 
 // Image Attachment interfaces
-interface ImageAttachmentParams {
+export interface ImageAttachmentParams {
     sales_order_id: string;
     image_base64: string;
     filename: string;
 }
 
-interface ImageAttachmentResponse {
+export interface ImageAttachmentResponse {
     jsonrpc: string;
     id: null;
     result: {

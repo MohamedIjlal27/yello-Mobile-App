@@ -9,16 +9,19 @@ import type { CameraCapturedPicture } from 'expo-camera';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../../store/store';
 
+interface ChequeDetails {
+  chequeNumber: string;
+  chequeDate: Date;
+  accountNumber: string;
+  accountId?: string;
+  chequeImage?: string;
+}
+
 interface ChequePaymentProps {
   paymentAmount: string;
   setPaymentAmount: (amount: string) => void;
-  chequeDetails: {
-    chequeNumber: string;
-    chequeDate: Date;
-    accountNumber: string;
-    chequeImage?: string;
-  };
-  setChequeDetails: (details: any) => void;
+  chequeDetails: ChequeDetails;
+  setChequeDetails: (details: ChequeDetails | ((prev: ChequeDetails) => ChequeDetails)) => void;
   showDatePicker: boolean;
   setShowDatePicker: (show: boolean) => void;
   handleDateChange: (event: any, selectedDate?: Date) => void;
@@ -53,7 +56,7 @@ const ChequePayment = ({
         <TextInput
           style={styles.textInput}
           value={chequeDetails.chequeNumber}
-          onChangeText={(text) => setChequeDetails((prev: any) => ({ ...prev, chequeNumber: text }))}
+          onChangeText={(text) => setChequeDetails((prev: ChequeDetails) => ({ ...prev, chequeNumber: text }))}
           placeholder="225856"
         />
       </View>
@@ -116,17 +119,21 @@ const ChequePayment = ({
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
               >
-                {customerAccounts.map((account, index) => (
+                {customerAccounts.map((account) => (
                   <TouchableOpacity
-                    key={index}
+                    key={account.id}
                     style={styles.dropdownItem}
                     onPress={() => {
-                      setChequeDetails((prev: any) => ({ ...prev, accountNumber: account }));
+                      setChequeDetails((prev: ChequeDetails) => ({ 
+                        ...prev, 
+                        accountNumber: account.value,
+                        accountId: account.id
+                      }));
                       setShowAccountDropdown(false);
                     }}
                   >
                     <Text style={styles.dropdownItemText} numberOfLines={1}>
-                      {account}
+                      {account.value}
                     </Text>
                   </TouchableOpacity>
                 ))}

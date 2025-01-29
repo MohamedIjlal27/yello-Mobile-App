@@ -1,32 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface BankAccount {
-  id: string;
-  name: string;
-}
+import { BankAccount, CustomerAccount } from '../database';
 
 interface BankAccountState {
   bankAccounts: BankAccount[];
-  customerAccounts: string[];
+  customerAccounts: CustomerAccount[];
 }
 
 const initialState: BankAccountState = {
   bankAccounts: [],
-  customerAccounts: []
+  customerAccounts: [],
 };
 
 const bankAccountSlice = createSlice({
   name: 'bankAccount',
   initialState,
   reducers: {
-    setBankAccounts: (state, action: PayloadAction<{ [key: string]: string }>) => {
-      // Convert the object to array of BankAccount objects with id and name
-      state.bankAccounts = Object.entries(action.payload).map(([id, name]) => ({
-        id,
-        name
-      }));
+    setBankAccounts: (state, action: PayloadAction<BankAccount[]>) => {
+      state.bankAccounts = action.payload;
     },
-    setCustomerAccounts: (state, action: PayloadAction<string[]>) => {
+    setCustomerAccounts: (state, action: PayloadAction<CustomerAccount[]>) => {
       state.customerAccounts = action.payload;
     },
     clearBankAccounts: (state) => {

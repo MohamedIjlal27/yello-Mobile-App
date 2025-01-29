@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import type { CameraCapturedPicture } from 'expo-camera';
@@ -11,6 +11,8 @@ import { attachImage } from '@/api/endpoints';
 import { RootState } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { setBankAccounts, setCustomerAccounts } from '../../../../store/slices/bankAccountSlice';
+import { initDatabase, insertBankAccounts, insertCustomerAccounts, BankAccount, CustomerAccount } from '../../../../store/database';
+import type { ImageAttachmentResponse } from '@/api/endpoints';
 
 interface UploadInvoiceModalProps {
   shopName: string;
@@ -36,6 +38,18 @@ const generateUniqueFilename = (orderId: string) => {
   return `invoice_${orderId}_${timestamp}.jpg`;
 };
 
+interface ApiResponse {
+  jsonrpc: string;
+  id: null;
+  result: {
+    message?: string;
+    attachment_id?: number;
+    error?: string;
+    bank_accounts?: { [key: string]: string };
+    customer_accounts?: string[];
+  };
+}
+
 const UploadInvoiceModal = ({
   shopName,
   paymentType,
@@ -56,6 +70,11 @@ const UploadInvoiceModal = ({
   const [imageFilename, setImageFilename] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const dispatch = useDispatch();
+
+  // Initialize database when component mounts
+  useEffect(() => {
+    initDatabase();
+  }, []);
 
   const handleUploadPress = async () => {
     if (!permission?.granted) {
@@ -119,7 +138,7 @@ const UploadInvoiceModal = ({
 
         setIsUploading(true);
 
-        const response = await attachImage({
+        const response: ImageAttachmentResponse = await attachImage({
           sales_order_id: validOrderId,
           image_base64: capturedImage.base64,
           filename: imageFilename
@@ -145,12 +164,25 @@ const UploadInvoiceModal = ({
           return;
         }
 
-        // Store bank account details in Redux if they exist in the response
+        // Store bank account details directly in Redux and SQLite
         if (response.result.bank_accounts) {
-          dispatch(setBankAccounts(response.result.bank_accounts));
+          const bankAccounts: BankAccount[] = Object.entries(response.result.bank_accounts).map(([id, value]) => ({
+            id,
+            value: value as string
+          }));
+          dispatch(setBankAccounts(bankAccounts));
+          // Store in SQLite
+          insertBankAccounts(response.result.bank_accounts);
         }
-        if (response.result.customer_accounts) {
-          dispatch(setCustomerAccounts(response.result.customer_accounts));
+        
+        if (response.result.customer_accounts && Array.isArray(response.result.customer_accounts)) {
+          const customerAccounts: CustomerAccount[] = response.result.customer_accounts.map((value: string, index: number) => ({
+            id: index.toString(),
+            value
+          }));
+          dispatch(setCustomerAccounts(customerAccounts));
+          // Store in SQLite
+          insertCustomerAccounts(response.result.customer_accounts);
         }
 
         setIsUploading(false);
@@ -170,6 +202,7 @@ const UploadInvoiceModal = ({
         );
       }
     } catch (error) {
+      console.error('Error uploading image:', error);
       setIsUploading(false);
       Alert.alert(
         'Error',
