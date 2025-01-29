@@ -6,6 +6,8 @@ import UploadIcon from '../../../../../assets/icons/upload.svg';
 import styles from '@/app/styles/components/recordPaymentMethod';
 import ACCOUNTNUMBERS from '@/app/constants/payment';
 import type { CameraCapturedPicture } from 'expo-camera';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../../store/store';
 
 interface ChequePaymentProps {
   paymentAmount: string;
@@ -27,7 +29,7 @@ interface ChequePaymentProps {
   handleRetake: () => void;
 }
 
-export default function ChequePayment({
+const ChequePayment = ({
   paymentAmount,
   setPaymentAmount,
   chequeDetails,
@@ -40,7 +42,9 @@ export default function ChequePayment({
   capturedImage,
   handleUploadPress,
   handleRetake
-}: ChequePaymentProps) {
+}: ChequePaymentProps) => {
+  const customerAccounts = useSelector((state: RootState) => state.bankAccount.customerAccounts);
+
   return (
     <View style={styles.chequeFieldsContainer}>
       {/* Cheque Number */}
@@ -99,9 +103,7 @@ export default function ChequePayment({
             onPress={() => setShowAccountDropdown(!showAccountDropdown)}
           >
             <Text style={styles.dropdownButtonText} numberOfLines={1}>
-              {chequeDetails.accountNumber ? 
-                ACCOUNTNUMBERS.find((acc: { number: string }) => acc.number === chequeDetails.accountNumber)?.bank + ' - ' + chequeDetails.accountNumber 
-                : 'Select Account Number'}
+              {chequeDetails.accountNumber || "Select Account Number"}
             </Text>
             <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
               <PolygonIcon width={12} height={12} fill="#374151" />
@@ -114,17 +116,17 @@ export default function ChequePayment({
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
               >
-                {ACCOUNTNUMBERS.map((account) => (
+                {customerAccounts.map((account, index) => (
                   <TouchableOpacity
-                    key={account.id}
+                    key={index}
                     style={styles.dropdownItem}
                     onPress={() => {
-                      setChequeDetails((prev: any) => ({ ...prev, accountNumber: account.number }));
+                      setChequeDetails((prev: any) => ({ ...prev, accountNumber: account }));
                       setShowAccountDropdown(false);
                     }}
                   >
                     <Text style={styles.dropdownItemText} numberOfLines={1}>
-                      {account.bank} - {account.number}
+                      {account}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -164,4 +166,6 @@ export default function ChequePayment({
       </View>
     </View>
   );
-} 
+};
+
+export default ChequePayment; 

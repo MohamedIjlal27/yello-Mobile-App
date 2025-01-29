@@ -5,14 +5,19 @@ import UploadIcon from '../../../../../assets/icons/upload.svg';
 import styles from '@/app/styles/components/recordPaymentMethod';
 import ACCOUNTNUMBERS from '@/app/constants/payment';
 import type { CameraCapturedPicture } from 'expo-camera';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../../store/store';
+
+interface OnlineDetails {
+  accountNumber: string;
+  accountId: string;
+  receiptImage?: string;
+}
 
 interface OnlinePaymentProps {
   paymentAmount: string;
   setPaymentAmount: (amount: string) => void;
-  onlineDetails: {
-    accountNumber: string;
-    receiptImage?: string;
-  };
+  onlineDetails: OnlineDetails;
   setOnlineDetails: (details: any) => void;
   showAccountDropdown: boolean;
   setShowAccountDropdown: (show: boolean) => void;
@@ -21,7 +26,7 @@ interface OnlinePaymentProps {
   handleRetake: () => void;
 }
 
-export default function OnlinePayment({
+const OnlinePayment = ({
   paymentAmount,
   setPaymentAmount,
   onlineDetails,
@@ -31,7 +36,9 @@ export default function OnlinePayment({
   capturedImage,
   handleUploadPress,
   handleRetake
-}: OnlinePaymentProps) {
+}: OnlinePaymentProps) => {
+  const bankAccounts = useSelector((state: RootState) => state.bankAccount.bankAccounts);
+
   return (
     <View style={styles.chequeFieldsContainer}>
       {/* Amount */}
@@ -46,7 +53,7 @@ export default function OnlinePayment({
         />
       </View>
 
-      {/* Account Number Dropdown */}
+      {/* Bank Dropdown */}
       <View style={styles.fieldRow}>
         <Text style={styles.fieldLabel}>Bank<Text style={styles.required}>*</Text></Text>
         <View style={styles.dropdownContainer}>
@@ -55,9 +62,7 @@ export default function OnlinePayment({
             onPress={() => setShowAccountDropdown(!showAccountDropdown)}
           >
             <Text style={styles.dropdownButtonText} numberOfLines={1}>
-              {onlineDetails.accountNumber ? 
-                ACCOUNTNUMBERS.find((acc: { number: string }) => acc.number === onlineDetails.accountNumber)?.bank + ' - ' + onlineDetails.accountNumber 
-                : 'Select Account Number'}
+              {onlineDetails.accountNumber || 'Select Bank'}
             </Text>
             <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
               <PolygonIcon width={12} height={12} fill="#374151" />
@@ -70,17 +75,21 @@ export default function OnlinePayment({
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
               >
-                {ACCOUNTNUMBERS.map((account) => (
+                {bankAccounts.map((account) => (
                   <TouchableOpacity
                     key={account.id}
                     style={styles.dropdownItem}
                     onPress={() => {
-                      setOnlineDetails((prev: any) => ({ ...prev, accountNumber: account.number }));
+                      setOnlineDetails((prev: any) => ({ 
+                        ...prev, 
+                        accountNumber: account.name,
+                        accountId: account.id
+                      }));
                       setShowAccountDropdown(false);
                     }}
                   >
                     <Text style={styles.dropdownItemText} numberOfLines={1}>
-                      {account.bank} - {account.number}
+                      {account.name}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -120,4 +129,6 @@ export default function OnlinePayment({
       </View>
     </View>
   );
-} 
+};
+
+export default OnlinePayment; 

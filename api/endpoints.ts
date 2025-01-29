@@ -106,6 +106,8 @@ interface ImageAttachmentResponse {
         message?: string;
         attachment_id?: number;
         error?: string;
+        bank_accounts?: { [key: string]: string };
+        customer_accounts?: string[];
     };
 }
 

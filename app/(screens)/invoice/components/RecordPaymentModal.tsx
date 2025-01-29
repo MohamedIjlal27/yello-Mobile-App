@@ -56,6 +56,7 @@ interface ChequeDetails {
 
 interface OnlineDetails {
   accountNumber: string;
+  accountId: string;
   receiptImage?: string;
 }
 
@@ -82,6 +83,7 @@ export default function RecordPaymentModal({
   });
   const [onlineDetails, setOnlineDetails] = useState<OnlineDetails>({
     accountNumber: '',
+    accountId: '',
     receiptImage: undefined
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -106,6 +108,7 @@ export default function RecordPaymentModal({
     });
     setOnlineDetails({
       accountNumber: '',
+      accountId: '',
       receiptImage: undefined
     });
   };
@@ -120,12 +123,12 @@ export default function RecordPaymentModal({
         amount: Number(paymentAmount),
         date: currentDate,
         type: selectedPaymentType.toLowerCase(),
-        cheque_no: selectedPaymentType === 'Cheque'? chequeDetails.chequeNumber : "",
-        account_no: selectedPaymentType === 'Cheque'? chequeDetails.accountNumber : "",
-        attachment: selectedPaymentType === 'Cash' ? "" : capturedImage?.base64
+        cheque_no: selectedPaymentType === 'Cheque' ? chequeDetails.chequeNumber : "",
+        account_no: "",
+        attachment: selectedPaymentType === 'Cash' ? "" : capturedImage?.base64 || ""
       };
 
-      // Add cheque details if payment type is Cheque
+      // Add account number based on payment type
       if (selectedPaymentType === 'Cheque') {
         paymentData.cheque_no = chequeDetails.chequeNumber;
         if (chequeDetails.accountNumber) {
@@ -134,14 +137,8 @@ export default function RecordPaymentModal({
             paymentData.account_no = selectedAccount.id;
           }
         }
-      }
-
-      // Add account number for Online payment
-      if (selectedPaymentType === 'Online' && onlineDetails.accountNumber) {
-        const selectedAccount = ACCOUNTNUMBERS.find(acc => acc.number === onlineDetails.accountNumber);
-        if (selectedAccount) {
-          paymentData.account_no = selectedAccount.id;
-        }
+      } else if (selectedPaymentType === 'Online') {
+        paymentData.account_no = onlineDetails.accountId;
       }
 
       console.log('Submitting payment:', paymentData);

@@ -9,7 +9,8 @@ import RecordPaymentModal from './RecordPaymentModal';
 import baseStyles from '@/app/styles/components/uploadInvoiced';
 import { attachImage } from '@/api/endpoints';
 import { RootState } from '@/store/store';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setBankAccounts, setCustomerAccounts } from '../../../../store/slices/bankAccountSlice';
 
 interface UploadInvoiceModalProps {
   shopName: string;
@@ -54,6 +55,7 @@ const UploadInvoiceModal = ({
   const cameraRef = useRef<CameraView>(null);
   const [imageFilename, setImageFilename] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
+  const dispatch = useDispatch();
 
   const handleUploadPress = async () => {
     if (!permission?.granted) {
@@ -141,6 +143,14 @@ const UploadInvoiceModal = ({
             [{ text: 'OK' }]
           );
           return;
+        }
+
+        // Store bank account details in Redux if they exist in the response
+        if (response.result.bank_accounts) {
+          dispatch(setBankAccounts(response.result.bank_accounts));
+        }
+        if (response.result.customer_accounts) {
+          dispatch(setCustomerAccounts(response.result.customer_accounts));
         }
 
         setIsUploading(false);

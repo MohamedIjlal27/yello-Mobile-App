@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import userReducer, { initializeUserState } from './userSlice';
+import bankAccountReducer from './slices/bankAccountSlice';
 
 // Initialize store with empty state
 export const store = configureStore({
     reducer: {
-        user: userReducer
+        user: userReducer,
+        bankAccount: bankAccountReducer,
     }
 });
 

@@ -42,7 +42,7 @@ export default function InvoiceReceiptsScreen() {
       const today = formatDate(new Date());
       const response = await fetchInvoiceReceipts({ 
         salesperson_id: userId, 
-        date: "2025-01-26"
+        date: "2025-01-29"
       });
       
       if (response.result && response.result.orders) {
