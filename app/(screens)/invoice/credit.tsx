@@ -116,6 +116,7 @@ export default function CreditInvoicesScreen() {
           shopName={demoInvoices[selectedInvoice].shopName}
           dueDate="Due Today"
           amount={demoInvoices[selectedInvoice].amount}
+          orderId={Number(demoInvoices[selectedInvoice].invoiceNumber)}
           onClose={handlePayModalClose}
           onSubmit={handlePaymentSubmit}
         />

@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Image, ScrollView } from 'reac
 import PolygonIcon from '../../../../../assets/icons/Polygon.svg';
 import UploadIcon from '../../../../../assets/icons/upload.svg';
 import styles from '@/app/styles/components/recordPaymentMethod';
-import { ACCOUNT_NUMBERS } from '@/app/constants/payment';
+import ACCOUNTNUMBERS from '@/app/constants/payment';
 import type { CameraCapturedPicture } from 'expo-camera';
 
 interface OnlinePaymentProps {
@@ -56,7 +56,7 @@ export default function OnlinePayment({
           >
             <Text style={styles.dropdownButtonText} numberOfLines={1}>
               {onlineDetails.accountNumber ? 
-                ACCOUNT_NUMBERS.find(acc => acc.number === onlineDetails.accountNumber)?.bank + ' - ' + onlineDetails.accountNumber 
+                ACCOUNTNUMBERS.find((acc: { number: string }) => acc.number === onlineDetails.accountNumber)?.bank + ' - ' + onlineDetails.accountNumber 
                 : 'Select Account Number'}
             </Text>
             <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
@@ -70,7 +70,7 @@ export default function OnlinePayment({
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
               >
-                {ACCOUNT_NUMBERS.map((account) => (
+                {ACCOUNTNUMBERS.map((account) => (
                   <TouchableOpacity
                     key={account.id}
                     style={styles.dropdownItem}

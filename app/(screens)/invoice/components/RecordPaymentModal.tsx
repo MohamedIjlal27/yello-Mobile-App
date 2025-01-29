@@ -21,7 +21,7 @@ import PolygonIcon from '../../../../assets/icons/Polygon.svg';
 import { createPayment } from '../../../../api/endpoints';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../store/store';
-import { ACCOUNT_NUMBERS } from '@/app/constants/payment';
+import ACCOUNTNUMBERS from '@/app/constants/payment';
 import CashPayment from './payment-modes/CashPayment';
 import ChequePayment from './payment-modes/ChequePayment';
 import OnlinePayment from './payment-modes/OnlinePayment';
@@ -114,40 +114,33 @@ export default function RecordPaymentModal({
     try {
       const currentDate = new Date().toISOString().split('T')[0];
       
-      if (!orderIdProp) {
-        Alert.alert(
-          "Error",
-          "Order ID is missing",
-          [{ text: "OK" }]
-        );
-        return;
-      }
-
-      const paymentData: any = {
-        salesperson_id: userId,
-        sales_order_id: orderIdProp.toString(),
-        amount: paymentAmount.toString(),
+      const paymentData = {
+        salesperson_id: Number(userId),
+        sales_order_id: Number(orderIdProp),
+        amount: Number(paymentAmount),
         date: currentDate,
         type: selectedPaymentType.toLowerCase(),
-        attachment: ""
+        cheque_no: selectedPaymentType === 'Cheque'? chequeDetails.chequeNumber : "",
+        account_no: selectedPaymentType === 'Cheque'? chequeDetails.accountNumber : "",
+        attachment: selectedPaymentType === 'Cash' ? "" : capturedImage?.base64
       };
 
       // Add cheque details if payment type is Cheque
       if (selectedPaymentType === 'Cheque') {
         paymentData.cheque_no = chequeDetails.chequeNumber;
         if (chequeDetails.accountNumber) {
-          const selectedAccount = ACCOUNT_NUMBERS.find(acc => acc.number === chequeDetails.accountNumber);
+          const selectedAccount = ACCOUNTNUMBERS.find(acc => acc.number === chequeDetails.accountNumber);
           if (selectedAccount) {
-            paymentData.account_no = Number(selectedAccount.id);
+            paymentData.account_no = selectedAccount.id;
           }
         }
       }
 
       // Add account number for Online payment
       if (selectedPaymentType === 'Online' && onlineDetails.accountNumber) {
-        const selectedAccount = ACCOUNT_NUMBERS.find(acc => acc.number === onlineDetails.accountNumber);
+        const selectedAccount = ACCOUNTNUMBERS.find(acc => acc.number === onlineDetails.accountNumber);
         if (selectedAccount) {
-          paymentData.account_no = Number(selectedAccount.id);
+          paymentData.account_no = selectedAccount.id;
         }
       }
 
@@ -156,10 +149,11 @@ export default function RecordPaymentModal({
       const response = await createPayment(paymentData);
       console.log('Payment response:', response);
 
-      if (response.result.success) {
+      if (response.result.message === 'Credit payment created successfully' || 
+          response.result.message === 'Payment recorded successfully!') {
         Alert.alert(
           "Success",
-          "Payment recorded successfully!",
+          response.result.message,
           [
             { 
               text: "OK", 
@@ -170,10 +164,10 @@ export default function RecordPaymentModal({
             }
           ]
         );
-      } else if (response.result.error) {
+      } else {
         Alert.alert(
           "Error",
-          response.result.error,
+          response.result.message || "Failed to record payment",
           [{ text: "OK" }]
         );
       }
@@ -228,7 +222,7 @@ export default function RecordPaymentModal({
   const renderPaymentFields = () => {
     switch (selectedPaymentType) {
       case 'Cash':
-        return (
+    return (
           <CashPayment
             paymentAmount={paymentAmount}
             setPaymentAmount={setPaymentAmount}
@@ -252,7 +246,7 @@ export default function RecordPaymentModal({
           />
         );
       case 'Online':
-        return (
+    return (
           <OnlinePayment
             paymentAmount={paymentAmount}
             setPaymentAmount={setPaymentAmount}
@@ -266,7 +260,7 @@ export default function RecordPaymentModal({
           />
         );
       case 'Credit':
-        return (
+    return (
           <CreditPayment
             paymentAmount={paymentAmount}
             setPaymentAmount={setPaymentAmount}

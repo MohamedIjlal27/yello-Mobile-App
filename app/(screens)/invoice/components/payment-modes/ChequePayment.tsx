@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import PolygonIcon from '../../../../../assets/icons/Polygon.svg';
 import UploadIcon from '../../../../../assets/icons/upload.svg';
 import styles from '@/app/styles/components/recordPaymentMethod';
-import { ACCOUNT_NUMBERS } from '@/app/constants/payment';
+import ACCOUNTNUMBERS from '@/app/constants/payment';
 import type { CameraCapturedPicture } from 'expo-camera';
 
 interface ChequePaymentProps {
@@ -100,7 +100,7 @@ export default function ChequePayment({
           >
             <Text style={styles.dropdownButtonText} numberOfLines={1}>
               {chequeDetails.accountNumber ? 
-                ACCOUNT_NUMBERS.find(acc => acc.number === chequeDetails.accountNumber)?.bank + ' - ' + chequeDetails.accountNumber 
+                ACCOUNTNUMBERS.find((acc: { number: string }) => acc.number === chequeDetails.accountNumber)?.bank + ' - ' + chequeDetails.accountNumber 
                 : 'Select Account Number'}
             </Text>
             <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
@@ -114,7 +114,7 @@ export default function ChequePayment({
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
               >
-                {ACCOUNT_NUMBERS.map((account) => (
+                {ACCOUNTNUMBERS.map((account) => (
                   <TouchableOpacity
                     key={account.id}
                     style={styles.dropdownItem}

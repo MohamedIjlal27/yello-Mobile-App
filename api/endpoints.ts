@@ -111,13 +111,13 @@ interface ImageAttachmentResponse {
 
 // Payment Creation interfaces
 interface CreatePaymentParams {
-    salesperson_id: string;
-    sales_order_id: string;
-    amount: string;
+    salesperson_id: number;
+    sales_order_id: number;
+    amount: number;
     date: string;
     type: string;
     cheque_no?: string;
-    account_no?: number;
+    account_no?: string;
     attachment?: string;
 }
 
@@ -125,8 +125,7 @@ interface CreatePaymentResponse {
     jsonrpc: string;
     id: null;
     result: {
-        error?: string;
-        success?: boolean;
+        message: string;
     };
 }
 
@@ -329,17 +328,25 @@ export const createPayment = async (params: CreatePaymentParams): Promise<Create
             method: 'POST',
             headers: DEFAULT_HEADERS,
             body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: null,
-                params: params
+                params: {
+                    salesperson_id: params.salesperson_id,
+                    sales_order_id: params.sales_order_id,
+                    amount: params.amount,
+                    date: params.date,
+                    type: params.type,
+                    cheque_no: params.cheque_no || "",
+                    account_no: params.account_no || "",
+                    attachment: params.attachment || ""
+                }
             }),
         });
         
-        const data = await response.json();
-
         if (!response.ok) {
-            throw new Error(data.error?.message || API_ERROR_MESSAGES.SERVER_ERROR);
+            throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
         }
+
+        const data = await response.json();
+        console.log('Create Payment Response:', data);
 
         if (!data || !data.result) {
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
@@ -347,6 +354,7 @@ export const createPayment = async (params: CreatePaymentParams): Promise<Create
 
         return data;
     } catch (error) {
+        console.error('API Error:', error);
         if (error instanceof Error) {
             throw error;
         }
