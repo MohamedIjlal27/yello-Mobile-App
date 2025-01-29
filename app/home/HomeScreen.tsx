@@ -1,5 +1,7 @@
 import { StyleSheet, View, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../store/store'
 import MenuScreen from '../menu/MenuScreen'
 import CollectionDashboard from '../dashboard/CollectionDashboard'
 import InvoiceDashboard from '../dashboard/InvoiceDashboard'
@@ -11,6 +13,7 @@ const { width } = Dimensions.get('window')
 export default function HomeScreen() {
   const [currentPage, setCurrentPage] = useState(1)
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false)
+  const { empName, jobTitle, profilePic } = useSelector((state: RootState) => state.user)
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x
@@ -21,18 +24,20 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ProfileSection
-        name="Charith Madhuranga"
-        role="Cash Collector"
+        name={empName}
+        role={jobTitle?.en_US || 'Cash Collector'}
         lastUpdated="Last updated at 09-Jan-25 09:46 AM"
         onAvatarPress={() => setIsProfileModalVisible(true)}
+        profilePic={profilePic}
       />
 
       {/* Profile Modal */}
       <ProfileModal
         visible={isProfileModalVisible}
         onClose={() => setIsProfileModalVisible(false)}
-        name="Charith Madhuranga"
-        role="Cash Collector"
+        name={empName}
+        role={jobTitle?.en_US || 'Cash Collector'}
+        profilePic={profilePic}
       />
 
       {/* Scrollable Content */}

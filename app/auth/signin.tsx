@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthenticated, AUTH_KEYS } from '../../utils/authStorage';
 import { login, LoginResponse } from '../../api/endpoints';
 import { useDispatch } from 'react-redux';
-import { setUserId } from '../../store/userSlice';
+import { setUserId, setUserData } from '../../store/userSlice';
 import { AppDispatch } from '../../store/store';
 import styles from '../styles/auth/styles';
 
@@ -98,6 +98,14 @@ export default function SignIn() {
         await setAuthenticated(userData);
         
         dispatch(setUserId(userId));
+        dispatch(setUserData({
+          emp_id: response.result.emp_id,
+          emp_name: response.result.emp_name,
+          job_title: response.result.job_title,
+          profile_pic: response.result.profile_pic,
+          sales_id: response.result.sales_id,
+          sales_name: response.result.sales_name
+        }));
         
         await handleRememberMe();
 

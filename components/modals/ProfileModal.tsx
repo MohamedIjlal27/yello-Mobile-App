@@ -11,9 +11,10 @@ interface ProfileModalProps {
   onClose: () => void;
   name: string;
   role: string;
+  profilePic: string | null;
 }
 
-const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
+const ProfileModal = ({ visible, onClose, name, role, profilePic }: ProfileModalProps) => {
   const [isBiometricsEnabled, setIsBiometricsEnabled] = useState(false);
   const [hasBiometricHardware, setHasBiometricHardware] = useState(false);
   const { enableBiometric, clearBiometricData } = useBiometrics();
@@ -151,7 +152,7 @@ const ProfileModal = ({ visible, onClose, name, role }: ProfileModalProps) => {
             {/* Profile Image and Status */}
             <View style={styles.profileImageContainer}>
               <Image
-                source={require('../../assets/images/default-avatar.png')}
+                source={profilePic ? { uri: profilePic } : require('../../assets/images/default-avatar.png')}
                 style={styles.profileImage}
               />
               <View style={styles.statusIndicator} />

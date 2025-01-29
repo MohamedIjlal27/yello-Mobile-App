@@ -17,11 +17,17 @@ export interface LoginResponse {
     jsonrpc: string;
     id: null;
     result: {
-        success: boolean;
+        message: string;
+        emp_id: number;
+        emp_name: string;
+        job_title: {
+            en_US: string;
+        };
+        profile_pic: string | null;
+        sales_id: number;
+        sales_name: string;
         user_id?: string;
         role?: string;
-        message?: string;
-        error_code?: 'USER_NOT_FOUND' | 'INVALID_CREDENTIALS';
     };
 }
 

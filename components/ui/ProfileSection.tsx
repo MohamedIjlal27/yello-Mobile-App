@@ -7,9 +7,16 @@ interface ProfileSectionProps {
   role: string;
   lastUpdated: string;
   onAvatarPress?: () => void;
+  profilePic: string | null;
 }
 
-const ProfileSection: React.FC<ProfileSectionProps> = ({ name, role, lastUpdated, onAvatarPress }) => (
+const ProfileSection: React.FC<ProfileSectionProps> = ({ 
+  name, 
+  role, 
+  lastUpdated, 
+  onAvatarPress,
+  profilePic 
+}) => (
   <View style={styles.profileContainer}>
     <View style={styles.notificationContainer}>
       <TouchableOpacity style={styles.notificationIcon}>
@@ -25,7 +32,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ name, role, lastUpdated
     <View style={styles.profileInfo}>
       <TouchableOpacity onPress={onAvatarPress}>
         <Image
-          source={require('../../assets/images/default-avatar.png')}
+          source={profilePic ? { uri: profilePic } : require('../../assets/images/default-avatar.png')}
           style={styles.avatar}
         />
         <View style={styles.onlineIndicator} />
