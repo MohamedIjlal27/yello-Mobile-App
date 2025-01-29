@@ -21,6 +21,11 @@ import PolygonIcon from '../../../../assets/icons/Polygon.svg';
 import { createPayment } from '../../../../api/endpoints';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../store/store';
+import { ACCOUNT_NUMBERS } from '@/app/constants/payment';
+import CashPayment from './payment-modes/CashPayment';
+import ChequePayment from './payment-modes/ChequePayment';
+import OnlinePayment from './payment-modes/OnlinePayment';
+import CreditPayment from './payment-modes/CreditPayment';
 
 // Icons
 import CashIcon from '../../../../assets/icons/invoiceCash.svg';
@@ -53,14 +58,6 @@ interface OnlineDetails {
   accountNumber: string;
   receiptImage?: string;
 }
-
-// Add account number options
-const ACCOUNT_NUMBERS = [
-  { id: '1', number: '8217003589', bank: 'Commercial Bank' },
-  { id: '2', number: '7156982430', bank: 'Sampath Bank' },
-  { id: '3', number: '9304521678', bank: 'HNB Bank' },
-  { id: '4', number: '6549873210', bank: 'BOC Bank' }
-];
 
 const formatAmount = (amount: number) => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -228,274 +225,59 @@ export default function RecordPaymentModal({
     setIsCameraVisible(true);
   };
 
-  const renderChequeFields = () => {
-    if (selectedPaymentType !== 'Cheque') return null;
-
-    return (
-      <View style={styles.chequeFieldsContainer}>
-        {/* Cheque Number */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Cheque Number<Text style={styles.required}>*</Text></Text>
-          <TextInput
-            style={styles.textInput}
-            value={chequeDetails.chequeNumber}
-            onChangeText={(text) => setChequeDetails(prev => ({ ...prev, chequeNumber: text }))}
-            placeholder="225856"
+  const renderPaymentFields = () => {
+    switch (selectedPaymentType) {
+      case 'Cash':
+        return (
+          <CashPayment
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
           />
-        </View>
-
-        {/* Cheque Date */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Cheque Date<Text style={styles.required}>*</Text></Text>
-          <TouchableOpacity 
-            style={styles.dateInput}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={styles.dateText}>
-              {chequeDetails.chequeDate.toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-              })}
-            </Text>
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={chequeDetails.chequeDate}
-              mode="date"
-              onChange={handleDateChange}
-            />
-          )}
-        </View>
-
-        {/* Amount */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Amount<Text style={styles.required}>*</Text></Text>
-          <TextInput
-            style={styles.textInput}
-            value={paymentAmount}
-            onChangeText={setPaymentAmount}
-            keyboardType="numeric"
-            placeholder="54,752.85"
+        );
+      case 'Cheque':
+        return (
+          <ChequePayment
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            chequeDetails={chequeDetails}
+            setChequeDetails={setChequeDetails}
+            showDatePicker={showDatePicker}
+            setShowDatePicker={setShowDatePicker}
+            handleDateChange={handleDateChange}
+            showAccountDropdown={showAccountDropdown}
+            setShowAccountDropdown={setShowAccountDropdown}
+            capturedImage={capturedImage}
+            handleUploadPress={handleUploadPress}
+            handleRetake={handleRetake}
           />
-        </View>
-
-        {/* Account Number Dropdown */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Account Number<Text style={styles.required}>*</Text></Text>
-          <View style={styles.dropdownContainer}>
-            <TouchableOpacity
-              style={styles.dropdownButton}
-              onPress={() => setShowAccountDropdown(!showAccountDropdown)}
-            >
-              <Text style={styles.dropdownButtonText} numberOfLines={1}>
-                {chequeDetails.accountNumber ? 
-                  ACCOUNT_NUMBERS.find(acc => acc.number === chequeDetails.accountNumber)?.bank + ' - ' + chequeDetails.accountNumber 
-                  : 'Select Account Number'}
-              </Text>
-              <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
-                <PolygonIcon width={12} height={12} fill="#374151" />
-              </View>
-            </TouchableOpacity>
-            {showAccountDropdown && (
-              <View style={styles.dropdownList}>
-                <ScrollView 
-                  style={styles.dropdownScroll}
-                  showsVerticalScrollIndicator={true}
-                  nestedScrollEnabled={true}
-                >
-                  {ACCOUNT_NUMBERS.map((account) => (
-                    <TouchableOpacity
-                      key={account.id}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setChequeDetails(prev => ({ ...prev, accountNumber: account.number }));
-                        setShowAccountDropdown(false);
-                      }}
-                    >
-                      <Text style={styles.dropdownItemText} numberOfLines={1}>
-                        {account.bank} - {account.number}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Image Upload */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Image<Text style={styles.required}>*</Text></Text>
-          <View style={styles.imageUploadContainer}>
-            {capturedImage ? (
-              <>
-                <Image 
-                  source={{ uri: capturedImage.uri }} 
-                  style={styles.previewImage}
-                />
-                <TouchableOpacity 
-                  style={styles.retakeButton}
-                  onPress={handleRetake}
-                >
-                  <Text style={styles.retakeText}>Retake</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <TouchableOpacity 
-                style={styles.uploadButton}
-                onPress={handleUploadPress}
-              >
-                <UploadIcon width={20} height={20} fill="#374151" />
-                <Text style={styles.uploadText}>Upload Image</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderOnlineFields = () => {
-    if (selectedPaymentType !== 'Online') return null;
-
-    return (
-      <View style={styles.chequeFieldsContainer}>
-        {/* Amount */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Amount<Text style={styles.required}>*</Text></Text>
-          <TextInput
-            style={styles.textInput}
-            value={paymentAmount}
-            onChangeText={setPaymentAmount}
-            keyboardType="numeric"
-            placeholder="54,752.85"
+        );
+      case 'Online':
+        return (
+          <OnlinePayment
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            onlineDetails={onlineDetails}
+            setOnlineDetails={setOnlineDetails}
+            showAccountDropdown={showAccountDropdown}
+            setShowAccountDropdown={setShowAccountDropdown}
+            capturedImage={capturedImage}
+            handleUploadPress={handleUploadPress}
+            handleRetake={handleRetake}
           />
-        </View>
-
-        {/* Account Number Dropdown */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Bank<Text style={styles.required}>*</Text></Text>
-          <View style={styles.dropdownContainer}>
-            <TouchableOpacity
-              style={styles.dropdownButton}
-              onPress={() => setShowAccountDropdown(!showAccountDropdown)}
-            >
-              <Text style={styles.dropdownButtonText} numberOfLines={1}>
-                {onlineDetails.accountNumber ? 
-                  ACCOUNT_NUMBERS.find(acc => acc.number === onlineDetails.accountNumber)?.bank + ' - ' + onlineDetails.accountNumber 
-                  : 'Select Account Number'}
-              </Text>
-              <View style={[styles.polygonIconContainer, showAccountDropdown && styles.polygonIconRotated]}>
-                <PolygonIcon width={12} height={12} fill="#374151" />
-              </View>
-            </TouchableOpacity>
-            {showAccountDropdown && (
-              <View style={styles.dropdownList}>
-                <ScrollView 
-                  style={styles.dropdownScroll}
-                  showsVerticalScrollIndicator={true}
-                  nestedScrollEnabled={true}
-                >
-                  {ACCOUNT_NUMBERS.map((account) => (
-                    <TouchableOpacity
-                      key={account.id}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setOnlineDetails(prev => ({ ...prev, accountNumber: account.number }));
-                        setShowAccountDropdown(false);
-                      }}
-                    >
-                      <Text style={styles.dropdownItemText} numberOfLines={1}>
-                        {account.bank} - {account.number}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Receipt Upload */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Receipt<Text style={styles.required}>*</Text></Text>
-          <View style={styles.imageUploadContainer}>
-            {capturedImage ? (
-              <>
-                <Image 
-                  source={{ uri: capturedImage.uri }} 
-                  style={styles.previewImage}
-                />
-                <TouchableOpacity 
-                  style={styles.retakeButton}
-                  onPress={handleRetake}
-                >
-                  <Text style={styles.retakeText}>Retake</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <TouchableOpacity 
-                style={styles.uploadButton}
-                onPress={handleUploadPress}
-              >
-                <UploadIcon width={20} height={20} fill="#374151" />
-                <Text style={styles.uploadText}>Upload Receipt</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderCreditFields = () => {
-    if (selectedPaymentType !== 'Credit') return null;
-
-    return (
-      <View style={styles.chequeFieldsContainer}>
-        {/* Amount */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Amount<Text style={styles.required}>*</Text></Text>
-          <TextInput
-            style={styles.textInput}
-            value={paymentAmount}
-            onChangeText={setPaymentAmount}
-            keyboardType="numeric"
-            placeholder="54,752.85"
+        );
+      case 'Credit':
+        return (
+          <CreditPayment
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            capturedImage={capturedImage}
+            handleUploadPress={handleUploadPress}
+            handleRetake={handleRetake}
           />
-        </View>
-
-        {/* Credit Slip Upload */}
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Credit Slip<Text style={styles.required}>*</Text></Text>
-          <View style={styles.imageUploadContainer}>
-            {capturedImage ? (
-              <>
-                <Image 
-                  source={{ uri: capturedImage.uri }} 
-                  style={styles.previewImage}
-                />
-                <TouchableOpacity 
-                  style={styles.retakeButton}
-                  onPress={handleRetake}
-                >
-                  <Text style={styles.retakeText}>Retake</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <TouchableOpacity 
-                style={styles.uploadButton}
-                onPress={handleUploadPress}
-              >
-                <UploadIcon width={20} height={20} fill="#374151" />
-                <Text style={styles.uploadText}>Upload Credit Slip</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </View>
-    );
+        );
+      default:
+        return null;
+    }
   };
 
   if (!visible) return null;
@@ -587,37 +369,8 @@ export default function RecordPaymentModal({
             </TouchableOpacity>
           </View>
 
-          {/* Amount Input */}
-          {selectedPaymentType === 'Cash' && (
-            <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Amount</Text>
-              <View style={styles.amountInputWrapper}>
-                <View style={styles.amountInputContainer}>
-                  <Text style={styles.currencyLabel}>LKR</Text>
-                  <TextInput
-                    style={styles.amountInput}
-                    value={paymentAmount}
-                    onChangeText={setPaymentAmount}
-                    keyboardType="numeric"
-                    placeholder="0.00"
-                  />
-                </View>
-                <TouchableOpacity style={styles.denominationButton}>
-                  <DenominationIcon width={24} height={24} fill="#374151" />
-                  <Text style={styles.denominationText}>Denomination</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Cheque Fields */}
-          {renderChequeFields()}
-
-          {/* Online Fields */}
-          {renderOnlineFields()}
-
-          {/* Credit Fields */}
-          {renderCreditFields()}
+          {/* Payment Fields */}
+          {renderPaymentFields()}
 
           {/* Submit Button */}
           <TouchableOpacity 
