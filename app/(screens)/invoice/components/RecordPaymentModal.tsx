@@ -9,7 +9,8 @@ import {
   Dimensions,
   ScrollView,
   Modal,
-  Pressable
+  Pressable,
+  Alert
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -17,6 +18,9 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import type { CameraCapturedPicture } from 'expo-camera';
 import styles from '@/app/styles/components/recordPaymentMethod';
 import PolygonIcon from '../../../../assets/icons/Polygon.svg';
+import { createPayment } from '../../../../api/endpoints';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../store/store';
 
 // Icons
 import CashIcon from '../../../../assets/icons/invoiceCash.svg';
@@ -31,6 +35,7 @@ interface RecordPaymentModalProps {
   shopName: string;
   dueDate: string;
   amount: number;
+  orderId: number;
   onClose: () => void;
   onSubmit: (paymentType: string, amount: number, additionalData?: any) => void;
 }
@@ -66,6 +71,7 @@ export default function RecordPaymentModal({
   shopName,
   dueDate,
   amount,
+  orderId: orderIdProp,
   onClose,
   onSubmit
 }: RecordPaymentModalProps) {
@@ -87,6 +93,9 @@ export default function RecordPaymentModal({
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  
+  const userId = useSelector((state: RootState) => state.user.userId);
 
   const handlePaymentTypeSelect = (type: PaymentType) => {
     setSelectedPaymentType(type);
@@ -104,13 +113,80 @@ export default function RecordPaymentModal({
     });
   };
 
-  const handleSubmit = () => {
-    if (selectedPaymentType === 'Cheque') {
-      onSubmit(selectedPaymentType, Number(paymentAmount), chequeDetails);
-    } else if (selectedPaymentType === 'Online') {
-      onSubmit(selectedPaymentType, Number(paymentAmount), onlineDetails);
-    } else {
-      onSubmit(selectedPaymentType, Number(paymentAmount));
+  const handleSubmit = async () => {
+    try {
+      const currentDate = new Date().toISOString().split('T')[0];
+      
+      if (!orderIdProp) {
+        Alert.alert(
+          "Error",
+          "Order ID is missing",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      const paymentData: any = {
+        salesperson_id: userId,
+        sales_order_id: orderIdProp.toString(),
+        amount: paymentAmount.toString(),
+        date: currentDate,
+        type: selectedPaymentType.toLowerCase(),
+        attachment: ""
+      };
+
+      // Add cheque details if payment type is Cheque
+      if (selectedPaymentType === 'Cheque') {
+        paymentData.cheque_no = chequeDetails.chequeNumber;
+        if (chequeDetails.accountNumber) {
+          const selectedAccount = ACCOUNT_NUMBERS.find(acc => acc.number === chequeDetails.accountNumber);
+          if (selectedAccount) {
+            paymentData.account_no = Number(selectedAccount.id);
+          }
+        }
+      }
+
+      // Add account number for Online payment
+      if (selectedPaymentType === 'Online' && onlineDetails.accountNumber) {
+        const selectedAccount = ACCOUNT_NUMBERS.find(acc => acc.number === onlineDetails.accountNumber);
+        if (selectedAccount) {
+          paymentData.account_no = Number(selectedAccount.id);
+        }
+      }
+
+      console.log('Submitting payment:', paymentData);
+
+      const response = await createPayment(paymentData);
+      console.log('Payment response:', response);
+
+      if (response.result.success) {
+        Alert.alert(
+          "Success",
+          "Payment recorded successfully!",
+          [
+            { 
+              text: "OK", 
+              onPress: () => {
+                setShowSuccessPopup(false);
+                onClose();
+              }
+            }
+          ]
+        );
+      } else if (response.result.error) {
+        Alert.alert(
+          "Error",
+          response.result.error,
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      Alert.alert(
+        "Error",
+        "Failed to record payment. Please try again.",
+        [{ text: "OK" }]
+      );
     }
   };
 
@@ -299,7 +375,7 @@ export default function RecordPaymentModal({
 
         {/* Account Number Dropdown */}
         <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Account Number<Text style={styles.required}>*</Text></Text>
+          <Text style={styles.fieldLabel}>Bank<Text style={styles.required}>*</Text></Text>
           <View style={styles.dropdownContainer}>
             <TouchableOpacity
               style={styles.dropdownButton}

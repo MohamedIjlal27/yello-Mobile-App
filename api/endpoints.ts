@@ -109,6 +109,27 @@ interface ImageAttachmentResponse {
     };
 }
 
+// Payment Creation interfaces
+interface CreatePaymentParams {
+    salesperson_id: string;
+    sales_order_id: string;
+    amount: string;
+    date: string;
+    type: string;
+    cheque_no?: string;
+    account_no?: number;
+    attachment?: string;
+}
+
+interface CreatePaymentResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        error?: string;
+        success?: boolean;
+    };
+}
+
 // Endpoint paths
 export const ENDPOINTS = {
     INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
@@ -116,6 +137,7 @@ export const ENDPOINTS = {
     SET_BIOMETRIC: `${API_BASE_URL}/setbiometric`,
     DISCOUNT_ADJUSTMENT: `${API_BASE_URL}/sales-order/cancel`,
     ATTACH_IMAGE: `${API_BASE_URL}/sales-order/attach-image`,
+    CREATE_PAYMENT: `${API_BASE_URL}/sales-order/create-payment`,
 };
 
 // Type for invoice receipts params
@@ -278,6 +300,38 @@ export const attachImage = async (params: ImageAttachmentParams): Promise<ImageA
                     image_base64: params.image_base64,
                     filename: params.filename
                 }
+            }),
+        });
+        
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error?.message || API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        if (!data || !data.result) {
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
+// Function to create payment
+export const createPayment = async (params: CreatePaymentParams): Promise<CreatePaymentResponse> => {
+    try {
+        const response = await fetch(ENDPOINTS.CREATE_PAYMENT, {
+            method: 'POST',
+            headers: DEFAULT_HEADERS,
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                params: params
             }),
         });
         

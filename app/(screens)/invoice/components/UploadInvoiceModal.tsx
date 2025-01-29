@@ -16,9 +16,10 @@ interface UploadInvoiceModalProps {
   paymentType: string;
   dueDate: string;
   amount: number;
+  orderId: number;
   onClose: () => void;
   onUpload: () => void;
-  onAcceptPayment: (paymentType: string, amount: number) => void;
+  onAcceptPayment: () => void;
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -39,11 +40,12 @@ const UploadInvoiceModal = ({
   paymentType,
   dueDate,
   amount,
+  orderId,
   onClose,
   onUpload,
-  onAcceptPayment,
+  onAcceptPayment
 }: UploadInvoiceModalProps) => {
-  const orderId = useSelector((state: RootState) => state.user.orderId);
+  const orderIdState = useSelector((state: RootState) => state.user.orderId);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [capturedImage, setCapturedImage] = useState<CameraCapturedPicture | null>(null);
   const [showRecordPayment, setShowRecordPayment] = useState(false);
@@ -71,7 +73,7 @@ const UploadInvoiceModal = ({
           quality: 0.7,
         });
         if (photo) {
-          const filename = generateUniqueFilename(orderId);
+          const filename = generateUniqueFilename(orderIdState);
           setImageFilename(filename);
           setCapturedImage(photo);
           setIsCameraVisible(false);
@@ -93,7 +95,7 @@ const UploadInvoiceModal = ({
 
   const handleAcceptPayment = async () => {
     try {
-      if (!orderId) {
+      if (!orderIdState) {
         Alert.alert(
           'Error',
           'Order ID is missing. Please try again.',
@@ -103,7 +105,7 @@ const UploadInvoiceModal = ({
       }
 
       if (capturedImage && capturedImage.base64 && imageFilename) {
-        const validOrderId = orderId.toString().trim();
+        const validOrderId = orderIdState.toString().trim();
         if (!validOrderId || isNaN(Number(validOrderId))) {
           Alert.alert(
             'Error',
@@ -169,7 +171,7 @@ const UploadInvoiceModal = ({
 
   const handlePaymentSubmit = (paymentType: string, amount: number) => {
     setShowRecordPayment(false);
-    onAcceptPayment(paymentType, amount);
+    onAcceptPayment();
   };
 
   const handleCloseRecordPayment = () => {
@@ -330,7 +332,8 @@ const UploadInvoiceModal = ({
         shopName={shopName}
         dueDate={dueDate}
         amount={amount}
-        onClose={handleCloseRecordPayment}
+        orderId={orderId}
+        onClose={() => setShowRecordPayment(false)}
         onSubmit={handlePaymentSubmit}
       />
     </>

@@ -213,6 +213,7 @@ export default function InvoiceReceiptsScreen() {
           paymentType="Cash"
           dueDate="21 Days"
           amount={orders[selectedInvoice].total_amount}
+          orderId={orders[selectedInvoice].order_id}
           onClose={handleClosePayModal}
           onUpload={handleUploadInvoice}
           onAcceptPayment={handleAcceptPayment}
