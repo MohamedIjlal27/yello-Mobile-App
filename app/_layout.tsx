@@ -1,11 +1,12 @@
+import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import SplashScreenComponent from '../components/SplashScreen';
 import { View, useColorScheme, StatusBar } from 'react-native';
 import { Provider } from 'react-redux';
 import { store } from '../store/store';
 import Toast, { BaseToast, ErrorToast, ToastProps } from 'react-native-toast-message';
+import AppInitializer from './AppInitializer';
 
 // Toast configuration
 const toastConfig = {
@@ -78,9 +79,14 @@ export default function RootLayout() {
         translucent
       />
       <Provider store={store}>
-        <Stack screenOptions={{
-          headerShown: false,
-        }} />
+        <AppInitializer>
+          <Stack screenOptions={{
+            headerShown: false,
+          }}>
+            <Stack.Screen name="auth/signin" />
+            <Stack.Screen name="home/HomeScreen" />
+          </Stack>
+        </AppInitializer>
       </Provider>
       <Toast config={toastConfig} />
     </>

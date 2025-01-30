@@ -3,10 +3,13 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
 import { enrollBiometric } from '../api/endpoints';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 export const useBiometrics = () => {
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
+  const empId = useSelector((state: RootState) => state.user.empId);
 
   useEffect(() => {
     checkBiometricSupport();
@@ -30,25 +33,32 @@ export const useBiometrics = () => {
     }
   };
 
-  const enableBiometric = async (userId: string) => {
+  const enableBiometric = async () => {
     try {
+      if (!empId) {
+        throw new Error('Employee ID not found');
+      }
+
       const biometricAuth = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Scan your fingerprint to enable biometric login',
         disableDeviceFallback: true,
       });
 
       if (biometricAuth.success) {
-        const deviceId = Device.deviceName || Device.modelName || 'unknown';
+        // Generate a unique biometric hash using timestamp and device info
+        const timestamp = new Date().getTime();
+        const deviceInfo = await Device.getDeviceTypeAsync();
+        const biometricHash = `${timestamp}-${deviceInfo}-${empId}`;
         
         // Call the API to enroll biometric
         const response = await enrollBiometric({
-          user_id: userId,
-          device_id: deviceId,
-          biometric_enabled: true
+          userId: empId.toString(),
+          biometricHash: biometricHash
         });
 
-        if (response.result.success) {
+        if (response.result.message === 'Biometric hash updated successfully') {
           await AsyncStorage.setItem('biometricEnabled', 'true');
+          await AsyncStorage.setItem('biometricHash', biometricHash);
           return true;
         }
         return false;

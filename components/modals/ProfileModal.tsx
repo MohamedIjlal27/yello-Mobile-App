@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBiometrics } from '../../hooks/useBiometrics';
 import { router } from 'expo-router';
 import { clearAuthentication } from '../../utils/authStorage';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
 
 interface ProfileModalProps {
   visible: boolean;
@@ -18,6 +20,7 @@ const ProfileModal = ({ visible, onClose, name, role, profilePic }: ProfileModal
   const [isBiometricsEnabled, setIsBiometricsEnabled] = useState(false);
   const [hasBiometricHardware, setHasBiometricHardware] = useState(false);
   const { enableBiometric, clearBiometricData } = useBiometrics();
+  const userId = useSelector((state: RootState) => state.user.userId);
 
   useEffect(() => {
     if (visible) {

@@ -38,6 +38,7 @@ export default function SignIn() {
     checkAuth();
     loadRememberedUsername();
     checkBiometricStatus();
+    initializeUserData();
   }, []);
 
   const checkAuth = async () => {
@@ -66,6 +67,31 @@ export default function SignIn() {
     setIsBiometricEnabled(biometricEnabled === 'true');
   };
 
+  const initializeUserData = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('USER_DATA');
+      if (userData) {
+        const parsedData = JSON.parse(userData);
+        // Dispatch user data to Redux
+        if (parsedData.userId) {
+          dispatch(setUserId(parsedData.userId));
+        }
+        if (parsedData.empId) {
+          dispatch(setUserData({
+            emp_id: parsedData.empId,
+            emp_name: parsedData.empName,
+            job_title: parsedData.jobTitle,
+            profile_pic: parsedData.profilePic || null,
+            sales_id: parsedData.salesId,
+            sales_name: parsedData.salesName
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing user data:', error);
+    }
+  };
+
   const handleLogin = async () => {
     if (!username || !password) {
       Alert.alert('Error', 'Please enter both username and password');
@@ -92,7 +118,8 @@ export default function SignIn() {
           username,
           email: username,
           role: response.result.role || 'Cash Collector',
-          user_id: userId
+          user_id: userId,
+          profile_pic: response.result.profile_pic
         };
 
         await setAuthenticated(userData);
@@ -143,12 +170,8 @@ export default function SignIn() {
 
   const handleEnableBiometric = async () => {
     try {
-      if (!loginResponse?.result.user_id) {
-        throw new Error('User ID not found');
-      }
-
       console.log('Attempting to enable biometrics...');
-      const success = await enableBiometric(loginResponse.result.user_id);
+      const success = await enableBiometric();
       
       if (success) {
         console.log('Biometric enrollment successful');

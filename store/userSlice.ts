@@ -32,17 +32,7 @@ export const initializeUserState = async () => {
     try {
         const userData = await AsyncStorage.getItem('USER_DATA');
         if (userData) {
-            const parsedData = JSON.parse(userData);
-            return {
-                userId: parsedData.user_id || '',
-                orderId: parsedData.order_id || '',
-                empId: parsedData.emp_id || null,
-                empName: parsedData.emp_name || '',
-                jobTitle: parsedData.job_title || null,
-                profilePic: parsedData.profile_pic || null,
-                salesId: parsedData.sales_id || null,
-                salesName: parsedData.sales_name || ''
-            };
+            return JSON.parse(userData);
         }
     } catch (error) {
         console.error('Error loading user state:', error);
@@ -56,12 +46,19 @@ const userSlice = createSlice({
     reducers: {
         setUserId: (state, action: PayloadAction<string>) => {
             state.userId = action.payload;
-            // Persist to AsyncStorage
-            AsyncStorage.setItem('USER_DATA', JSON.stringify({ user_id: action.payload }))
-                .catch(error => console.error('Error saving user ID:', error));
+            // Update AsyncStorage with all current state data
+            AsyncStorage.setItem('USER_DATA', JSON.stringify({
+                ...state,
+                userId: action.payload
+            })).catch(error => console.error('Error saving user data:', error));
         },
         setOrderId: (state, action: PayloadAction<string>) => {
             state.orderId = action.payload;
+            // Update AsyncStorage with all current state data
+            AsyncStorage.setItem('USER_DATA', JSON.stringify({
+                ...state,
+                orderId: action.payload
+            })).catch(error => console.error('Error saving user data:', error));
         },
         setUserData: (state, action: PayloadAction<{
             emp_id: number;
@@ -77,8 +74,27 @@ const userSlice = createSlice({
             state.profilePic = action.payload.profile_pic;
             state.salesId = action.payload.sales_id;
             state.salesName = action.payload.sales_name;
+            
+            // Store the complete user data including the current userId and orderId
+            const userData = {
+                userId: state.userId,
+                orderId: state.orderId,
+                empId: action.payload.emp_id,
+                empName: action.payload.emp_name,
+                jobTitle: action.payload.job_title,
+                profilePic: action.payload.profile_pic,
+                salesId: action.payload.sales_id,
+                salesName: action.payload.sales_name
+            };
+            
+            // Store the complete user data
+            AsyncStorage.setItem('USER_DATA', JSON.stringify(userData))
+                .catch(error => console.error('Error saving user data:', error));
         },
         clearUserData: (state) => {
+            // Clear AsyncStorage when logging out
+            AsyncStorage.removeItem('USER_DATA')
+                .catch(error => console.error('Error clearing user data:', error));
             return initialState;
         }
     }

@@ -66,17 +66,15 @@ interface ApiResponse {
 
 // Biometric interfaces
 interface BiometricEnrollParams {
-    user_id: string;
-    device_id: string;
-    biometric_enabled: boolean;
+    userId: string;
+    biometricHash: string;
 }
 
 interface BiometricEnrollResponse {
     jsonrpc: string;
     id: null;
     result: {
-        success: boolean;
-        message?: string;
+        message: string;
     };
 }
 
@@ -230,9 +228,10 @@ export const enrollBiometric = async (params: BiometricEnrollParams): Promise<Bi
             method: 'POST',
             headers: DEFAULT_HEADERS,
             body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: null,
-                params: params
+                params: {
+                    userId: params.userId,
+                    biometricHash: params.biometricHash
+                }
             }),
         });
         
@@ -242,7 +241,7 @@ export const enrollBiometric = async (params: BiometricEnrollParams): Promise<Bi
 
         const data = await response.json();
 
-        if (!data.result || typeof data.result.success !== 'boolean') {
+        if (!data.result || !data.result.message) {
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
         }
 
