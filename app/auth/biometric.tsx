@@ -6,12 +6,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBiometrics } from '../../hooks/useBiometrics';
 import { setAuthenticated } from '../../utils/authStorage';
 import ArrowRight from '../../assets/icons/ArrowRight';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+
+
 
 export default function BiometricLogin() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { authenticateWithBiometric, enableBiometric, isFirstLogin } = useBiometrics();
+  const userId = useSelector((state: RootState) => state.user.userId);
 
   useEffect(() => {
     // Load the stored username
@@ -37,12 +42,12 @@ export default function BiometricLogin() {
       const userData = {
         username: username,
         role: 'Cash Collector',
-        userId: '16' // This should come from your login response
+        userId: userId // This should come from your login response
       };
       
       // If this is first login, enable biometric
       if (isFirstLogin) {
-        const biometricEnabled = await enableBiometric(userData.userId);
+        const biometricEnabled = await enableBiometric();
         if (!biometricEnabled) {
           Alert.alert('Warning', 'Failed to enable biometric login. You can try again later in settings.');
         }
