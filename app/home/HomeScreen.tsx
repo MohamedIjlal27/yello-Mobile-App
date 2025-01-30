@@ -1,5 +1,5 @@
 import { StyleSheet, View, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store/store'
 import MenuScreen from '../menu/MenuScreen'
@@ -7,13 +7,30 @@ import CollectionDashboard from '../dashboard/CollectionDashboard'
 import InvoiceDashboard from '../dashboard/InvoiceDashboard'
 import ProfileSection from '../../components/ui/ProfileSection'
 import ProfileModal from '../../components/modals/ProfileModal'
+import { getUserData } from '../../store/database'
 
 const { width } = Dimensions.get('window')
 
 export default function HomeScreen() {
   const [currentPage, setCurrentPage] = useState(1)
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false)
+  const [localUserData, setLocalUserData] = useState<any>(null)
   const { empName, jobTitle, profilePic } = useSelector((state: RootState) => state.user)
+
+  useEffect(() => {
+    const loadLocalData = async () => {
+      try {
+        const dbUserData = await getUserData();
+        if (dbUserData) {
+          setLocalUserData(dbUserData);
+        }
+      } catch (error) {
+        console.error('Error loading user data from database:', error);
+      }
+    };
+
+    loadLocalData();
+  }, []);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x
@@ -21,23 +38,28 @@ export default function HomeScreen() {
     setCurrentPage(page)
   }
 
+  // Use database data if available, fallback to Redux state
+  const displayName = localUserData?.emp_name || empName;
+  const displayRole = localUserData?.job_title || jobTitle?.en_US || 'Cash Collector';
+  const displayPic = localUserData?.profile_pic || profilePic;
+
   return (
     <View style={styles.container}>
       <ProfileSection
-        name={empName}
-        role={jobTitle?.en_US || 'Cash Collector'}
+        name={displayName}
+        role={displayRole}
         lastUpdated="Last updated at 09-Jan-25 09:46 AM"
         onAvatarPress={() => setIsProfileModalVisible(true)}
-        profilePic={profilePic}
+        profilePic={displayPic}
       />
 
       {/* Profile Modal */}
       <ProfileModal
         visible={isProfileModalVisible}
         onClose={() => setIsProfileModalVisible(false)}
-        name={empName}
-        role={jobTitle?.en_US || 'Cash Collector'}
-        profilePic={profilePic}
+        name={displayName}
+        role={displayRole}
+        profilePic={displayPic}
       />
 
       {/* Scrollable Content */}

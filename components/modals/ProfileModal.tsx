@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { clearAuthentication } from '../../utils/authStorage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
+import { clearUserData } from '../../store/database';
 
 interface ProfileModalProps {
   visible: boolean;
@@ -65,6 +66,9 @@ const ProfileModal = ({ visible, onClose, name, role, profilePic }: ProfileModal
             style: 'destructive',
             onPress: async () => {
               try {
+                // Clear database
+                await clearUserData();
+                
                 // Clear authentication state
                 await clearAuthentication();
                 await clearBiometricData();

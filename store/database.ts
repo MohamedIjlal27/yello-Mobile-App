@@ -10,16 +10,25 @@ export interface CustomerAccount {
   value: string;
 }
 
+export interface UserData {
+  emp_id: number;
+  emp_name: string;
+  job_title: string;
+  profile_pic: string | null;
+  sales_id: number;
+  sales_name: string;
+}
+
 // Open the database
 const db = SQLite.openDatabaseSync('yello.db');
 
 // Database version
-const CURRENT_VERSION = 2;
+const CURRENT_VERSION = 3;
 
 // Initialize database tables
 export const initDatabase = () => {
   try {
-    // Create tables if they don't exist (this is safer than dropping and recreating)
+    // Create tables if they don't exist
     db.execSync(`
       CREATE TABLE IF NOT EXISTS bank_accounts (
         id TEXT PRIMARY KEY NOT NULL,
@@ -34,6 +43,16 @@ export const initDatabase = () => {
       CREATE TABLE IF NOT EXISTS uploaded_invoices (
         order_id INTEGER PRIMARY KEY NOT NULL,
         uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS user_data (
+        emp_id INTEGER PRIMARY KEY NOT NULL,
+        emp_name TEXT NOT NULL,
+        job_title TEXT NOT NULL,
+        profile_pic TEXT,
+        sales_id INTEGER NOT NULL,
+        sales_name TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -137,4 +156,35 @@ export const getUploadedInvoices = (): Set<number> => {
     'SELECT order_id FROM uploaded_invoices'
   );
   return new Set(results.map(row => row.order_id));
+};
+
+// User Data Operations
+export const saveUserData = (userData: UserData) => {
+  const statement = db.prepareSync(`
+    INSERT OR REPLACE INTO user_data (
+      emp_id, emp_name, job_title, profile_pic, sales_id, sales_name
+    ) VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  try {
+    const result = statement.executeSync([
+      userData.emp_id,
+      userData.emp_name,
+      userData.job_title,
+      userData.profile_pic,
+      userData.sales_id,
+      userData.sales_name,
+    ]);
+    return result.lastInsertRowId;
+  } finally {
+    statement.finalizeSync();
+  }
+};
+
+export const getUserData = (): UserData | null => {
+  const result = db.getFirstSync<UserData>('SELECT * FROM user_data ORDER BY created_at DESC LIMIT 1');
+  return result || null;
+};
+
+export const clearUserData = () => {
+  db.execSync('DELETE FROM user_data');
 }; 

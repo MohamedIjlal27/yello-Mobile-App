@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   logoContainer: {
-    backgroundColor: '#FF0000',
+    backgroundColor: '#f90018',
     padding: 40,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FF0000',
+    backgroundColor: '#f90018',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',

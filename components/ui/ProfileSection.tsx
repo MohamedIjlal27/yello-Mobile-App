@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getUserData } from '../../store/database';
 
 interface ProfileSectionProps {
   name: string;
@@ -16,38 +17,62 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   lastUpdated, 
   onAvatarPress,
   profilePic 
-}) => (
-  <View style={styles.profileContainer}>
-    <View style={styles.notificationContainer}>
-      <TouchableOpacity style={styles.notificationIcon}>
-        <Image
-          source={require('../../assets/icons/pushNotificationIcon.png')}
-          style={styles.notificationIcon}
-        />
-        <View style={styles.notificationBadge}>
-          <Text style={styles.badgeText}>1</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-    <View style={styles.profileInfo}>
-      <TouchableOpacity onPress={onAvatarPress}>
-        <Image
-          source={profilePic ? { uri: profilePic } : require('../../assets/images/default-avatar.png')}
-          style={styles.avatar}
-        />
-        <View style={styles.onlineIndicator} />
-      </TouchableOpacity>
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>{name}</Text>
-        <Text style={styles.userRole}>{role}</Text>
-        <View style={styles.lastUpdated}>
-          <Ionicons name="sync-outline" size={14} color="#666" />
-          <Text style={styles.lastUpdatedText}>{lastUpdated}</Text>
+}) => {
+  const [localUserData, setLocalUserData] = useState<any>(null);
+
+  useEffect(() => {
+    const loadLocalData = async () => {
+      try {
+        const dbUserData = await getUserData();
+        if (dbUserData) {
+          setLocalUserData(dbUserData);
+        }
+      } catch (error) {
+        console.error('Error loading user data from database:', error);
+      }
+    };
+
+    loadLocalData();
+  }, []);
+
+  // Use database data if available, fallback to props
+  const displayName = localUserData?.emp_name || name;
+  const displayRole = localUserData?.job_title || role;
+  const displayPic = localUserData?.profile_pic || profilePic;
+
+  return (
+    <View style={styles.profileContainer}>
+      <View style={styles.notificationContainer}>
+        <TouchableOpacity style={styles.notificationIcon}>
+          <Image
+            source={require('../../assets/icons/pushNotificationIcon.png')}
+            style={styles.notificationIcon}
+          />
+          <View style={styles.notificationBadge}>
+            <Text style={styles.badgeText}>1</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.profileInfo}>
+        <TouchableOpacity onPress={onAvatarPress}>
+          <Image
+            source={displayPic ? { uri: displayPic } : require('../../assets/images/default-avatar.png')}
+            style={styles.avatar}
+          />
+          <View style={styles.onlineIndicator} />
+        </TouchableOpacity>
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.userRole}>{displayRole}</Text>
+          <View style={styles.lastUpdated}>
+            <Ionicons name="sync-outline" size={14} color="#666" />
+            <Text style={styles.lastUpdatedText}>{lastUpdated}</Text>
+          </View>
         </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   profileContainer: {

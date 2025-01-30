@@ -15,6 +15,7 @@ import { useDispatch } from 'react-redux';
 import { setUserId, setUserData } from '../../store/userSlice';
 import { AppDispatch } from '../../store/store';
 import styles from '../styles/auth/styles';
+import { saveUserData, clearUserData, initDatabase } from '../../store/database';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -35,10 +36,19 @@ export default function SignIn() {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    checkAuth();
-    loadRememberedUsername();
-    checkBiometricStatus();
-    initializeUserData();
+    const initialize = async () => {
+      try {
+        await initDatabase(); // Initialize the database first
+        await checkAuth();
+        await loadRememberedUsername();
+        await checkBiometricStatus();
+        await initializeUserData();
+      } catch (error) {
+        console.error('Initialization error:', error);
+      }
+    };
+
+    initialize();
   }, []);
 
   const checkAuth = async () => {
@@ -127,6 +137,21 @@ export default function SignIn() {
           sales_id: response.result.sales_id,
           sales_name: response.result.sales_name
         };
+
+        // Save to SQLite database
+        try {
+          await saveUserData({
+            emp_id: response.result.emp_id,
+            emp_name: response.result.emp_name,
+            job_title: response.result.job_title?.en_US || 'Sales Executive',
+            profile_pic: response.result.profile_pic,
+            sales_id: response.result.sales_id,
+            sales_name: response.result.sales_name
+          });
+        } catch (dbError) {
+          console.error('Database save error:', dbError);
+          // Continue with login even if database save fails
+        }
 
         await AsyncStorage.setItem('USER_DATA', JSON.stringify(userDataToStore));
         await AsyncStorage.setItem('USER_ID', userId.toString());
