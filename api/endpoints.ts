@@ -41,7 +41,7 @@ export interface Product {
     line_amount: number;
 }
 
-interface Customer {
+export interface Customer {
     name: string;
     address: string;
 }
@@ -55,7 +55,7 @@ export interface Order {
     order_lines: Product[];
 }
 
-interface ApiResponse {
+export interface InvoiceReceiptsResponse {
     jsonrpc: string;
     id: null;
     result: {
@@ -143,12 +143,41 @@ export const ENDPOINTS = {
     DISCOUNT_ADJUSTMENT: `${API_BASE_URL}/sales-order/cancel`,
     ATTACH_IMAGE: `${API_BASE_URL}/sales-order/attach-image`,
     CREATE_PAYMENT: `${API_BASE_URL}/sales-order/create-payment`,
+    CANCELLED_INVOICES: `${API_BASE_URL}/sales-order/cancellations`,
 };
 
 // Type for invoice receipts params
 interface InvoiceReceiptsParams {
     salesperson_id: string;
     date: string;
+}
+
+// Type for cancelled invoices params
+interface CancelledInvoicesParams {
+    salesperson_id: string;
+    type: 'cancel' | 'adjustment';
+    date: string;
+}
+
+export interface CancelledOrder {
+    order_id: number;
+    order_number: string;
+    total_amount: number;
+    discount_amount?: number;
+    cancel_status: string;
+    customer: {
+        name: string;
+        address: string;
+    };
+}
+
+interface CancelledInvoicesResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        status: string;
+        orders: CancelledOrder[];
+    };
 }
 
 // Function to login
@@ -190,8 +219,9 @@ export const login = async (params: LoginParams): Promise<LoginResponse> => {
 };
 
 // Function to fetch invoice receipts
-export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promise<ApiResponse> => {
+export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promise<InvoiceReceiptsResponse> => {
     try {
+        console.log('Calling fetchInvoiceReceipts with params:', params); // Add this log
         const response = await fetch(ENDPOINTS.INVOICE_RECEIPTS, {
             method: 'POST',
             headers: DEFAULT_HEADERS,
@@ -203,17 +233,21 @@ export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promi
         });
         
         if (!response.ok) {
+            console.error('Server error response:', response.status, response.statusText); // Add this log
             throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
         }
 
         const data = await response.json();
+        console.log('Invoice receipts API response:', data); // Add this log
 
-        if (!data.result || !Array.isArray(data.result.orders)) {
+        if (!data || !data.result || !Array.isArray(data.result.orders)) {
+            console.error('Invalid response structure:', data);
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
         }
 
         return data;
     } catch (error) {
+        console.error('API Error in fetchInvoiceReceipts:', error); // Updated error log
         if (error instanceof Error) {
             throw error;
         }
@@ -362,6 +396,36 @@ export const createPayment = async (params: CreatePaymentParams): Promise<Create
         return data;
     } catch (error) {
         console.error('API Error:', error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
+// Function to fetch cancelled invoices
+export const fetchCancelledInvoices = async (params: CancelledInvoicesParams): Promise<CancelledInvoicesResponse> => {
+    try {
+        const response = await fetch(ENDPOINTS.CANCELLED_INVOICES, {
+            method: 'POST',
+            headers: DEFAULT_HEADERS,
+            body: JSON.stringify({
+                params: params
+            }),
+        });
+        
+        if (!response.ok) {
+            throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.result) {
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
         if (error instanceof Error) {
             throw error;
         }

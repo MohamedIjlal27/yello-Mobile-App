@@ -51,6 +51,12 @@ export default function InvoiceReceiptsScreen() {
 
   // Separate data loading
   useEffect(() => {
+    console.log('Current userId in receipts:', userId);
+    if (!userId) {
+      console.log('Waiting for userId to be available...');
+      return;
+    }
+
     const loadData = async () => {
       try {
         setLoading(true);
@@ -71,23 +77,38 @@ export default function InvoiceReceiptsScreen() {
     };
 
     loadData();
-  }, []);
+  }, [userId]); // Add userId as dependency
 
   const loadInvoiceReceipts = async () => {
     try {
       setError(null);
       const today = formatDate(new Date());
+      
+      if (!userId) {
+        console.error('UserId is missing in loadInvoiceReceipts:', userId);
+        setError('Please log in again');
+        return;
+      }
+
+      console.log('Fetching receipts with userId:', userId);
       const response = await fetchInvoiceReceipts({ 
-        salesperson_id: userId, 
+        salesperson_id: userId.toString(), // Ensure userId is string
         date: "2025-01-29"
       });
       
-      if (response.result && response.result.orders) {
+      if (response?.result?.orders && Array.isArray(response.result.orders)) {
         setOrders(response.result.orders);
+        if (response.result.orders.length === 0) {
+          setError('No invoices found for today');
+        }
       } else {
-        setError('No orders found in the response');
+        setOrders([]);
+        setError('No orders available');
+        console.error('Invalid response structure:', response);
       }
     } catch (error) {
+      console.error('Error loading invoices:', error);
+      setOrders([]);
       setError(error instanceof Error ? error.message : 'Failed to load invoices');
     } finally {
       setLoading(false);

@@ -69,23 +69,23 @@ export default function SignIn() {
 
   const initializeUserData = async () => {
     try {
+      const storedUserId = await AsyncStorage.getItem('USER_ID');
       const userData = await AsyncStorage.getItem('USER_DATA');
+
+      if (storedUserId) {
+        dispatch(setUserId(storedUserId));
+      }
+      
       if (userData) {
         const parsedData = JSON.parse(userData);
-        // Dispatch user data to Redux
-        if (parsedData.userId) {
-          dispatch(setUserId(parsedData.userId));
-        }
-        if (parsedData.empId) {
-          dispatch(setUserData({
-            emp_id: parsedData.empId,
-            emp_name: parsedData.empName,
-            job_title: parsedData.jobTitle,
-            profile_pic: parsedData.profilePic || null,
-            sales_id: parsedData.salesId,
-            sales_name: parsedData.salesName
-          }));
-        }
+        dispatch(setUserData({
+          emp_id: parsedData.emp_id,
+          emp_name: parsedData.emp_name,
+          job_title: parsedData.job_title,
+          profile_pic: parsedData.profile_pic,
+          sales_id: parsedData.sales_id,
+          sales_name: parsedData.sales_name
+        }));
       }
     } catch (error) {
       console.error('Error initializing user data:', error);
@@ -112,19 +112,28 @@ export default function SignIn() {
       setLoginResponse(response);
 
       if (response.result && response.result.message?.toLowerCase().includes('success')) {
-        const userId = response.result.user_id || '';
+        const userId = response.result.sales_id || '';
         
-        const userData = {
+        // Store complete user data in AsyncStorage
+        const userDataToStore = {
+          userId: userId.toString(),
           username,
           email: username,
           role: response.result.role || 'Cash Collector',
-          user_id: userId,
-          profile_pic: response.result.profile_pic
+          profile_pic: response.result.profile_pic,
+          emp_id: response.result.emp_id,
+          emp_name: response.result.emp_name,
+          job_title: response.result.job_title,
+          sales_id: response.result.sales_id,
+          sales_name: response.result.sales_name
         };
 
-        await setAuthenticated(userData);
+        await AsyncStorage.setItem('USER_DATA', JSON.stringify(userDataToStore));
+        await AsyncStorage.setItem('USER_ID', userId.toString());
+        await setAuthenticated(userDataToStore);
         
-        dispatch(setUserId(userId));
+        // Update Redux state
+        dispatch(setUserId(userId.toString()));
         dispatch(setUserData({
           emp_id: response.result.emp_id,
           emp_name: response.result.emp_name,
