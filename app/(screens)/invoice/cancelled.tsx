@@ -44,11 +44,11 @@ export default function CancelledInvoicesScreen() {
         fetchCancelledInvoices({
           salesperson_id: userId.toString(),
           type: 'cancel',
-          date: "2025-01-29"
+          date: today
         }),
         fetchInvoiceReceipts({
           salesperson_id: userId.toString(),
-          date: "2025-01-29"
+          date: today
         })
       ]);
 

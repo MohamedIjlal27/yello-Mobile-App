@@ -93,7 +93,7 @@ export default function InvoiceReceiptsScreen() {
       console.log('Fetching receipts with userId:', userId);
       const response = await fetchInvoiceReceipts({ 
         salesperson_id: userId.toString(), // Ensure userId is string
-        date: "2025-01-29"
+        date: today
       });
       
       if (response?.result?.orders && Array.isArray(response.result.orders)) {

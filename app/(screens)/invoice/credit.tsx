@@ -79,7 +79,7 @@ export default function CreditInvoicesScreen() {
       const today = formatDate(new Date());
       const response = await fetchInvoiceReceipts({ 
         salesperson_id: userId, 
-        date: "2025-01-29"
+        date: today
       });
       
       if (response.result && response.result.orders) {
