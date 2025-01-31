@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://yelo-uat.cloudpepper.site/api/v1';
+export const API_BASE_URL = 'https://uat.yelogroup.biz/api/v1';
 
 // Common headers
 export const DEFAULT_HEADERS = {

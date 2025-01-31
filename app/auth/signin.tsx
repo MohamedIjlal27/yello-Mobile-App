@@ -17,6 +17,29 @@ import { AppDispatch } from '../../store/store';
 import styles from '../styles/auth/styles';
 import { saveUserData, clearUserData, initDatabase } from '../../store/database';
 
+// Add error handling utilities
+const getErrorMessage = (error: any): string => {
+  if (error?.result?.message) {
+    return error.result.message;
+  }
+  
+  if (error instanceof Error) {
+    switch (error.message) {
+      case 'Network request failed':
+        return 'Unable to connect to server. Please check your internet connection.';
+      case 'Invalid credentials':
+        return 'Invalid username or password. Please try again.';
+      case 'Server error occurred':
+        return 'Server is down. Please try again later.';
+      default:
+        return error.message;
+
+    }
+  }
+  
+  return 'An unexpected error occurred. Please try again.';
+};
+
 export default function SignIn() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -103,8 +126,14 @@ export default function SignIn() {
   };
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      Alert.alert('Error', 'Please enter both username and password');
+    // Input validation
+    if (!username.trim()) {
+      Alert.alert('Input Error', 'Please enter your username');
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert('Input Error', 'Please enter your password');
       return;
     }
 
@@ -113,8 +142,8 @@ export default function SignIn() {
 
       const loginParams = {
         user_id: "",
-        email: username,
-        password: password,
+        email: username.trim(),
+        password: password.trim(),
         biometrics: ""
       };
 
@@ -150,12 +179,26 @@ export default function SignIn() {
           });
         } catch (dbError) {
           console.error('Database save error:', dbError);
-          // Continue with login even if database save fails
+          // Show warning but continue with login
+          Alert.alert(
+            'Warning',
+            'Your login was successful, but there was an issue saving some data locally. Some features may be limited.',
+            [{ text: 'OK' }]
+          );
         }
 
-        await AsyncStorage.setItem('USER_DATA', JSON.stringify(userDataToStore));
-        await AsyncStorage.setItem('USER_ID', userId.toString());
-        await setAuthenticated(userDataToStore);
+        try {
+          await AsyncStorage.setItem('USER_DATA', JSON.stringify(userDataToStore));
+          await AsyncStorage.setItem('USER_ID', userId.toString());
+          await setAuthenticated(userDataToStore);
+        } catch (storageError) {
+          console.error('Storage error:', storageError);
+          Alert.alert(
+            'Warning',
+            'Your login was successful, but there was an issue saving your session. You may need to login again next time.',
+            [{ text: 'OK' }]
+          );
+        }
         
         // Update Redux state
         dispatch(setUserId(userId.toString()));
@@ -181,12 +224,13 @@ export default function SignIn() {
 
         router.replace('/home/HomeScreen');
       } else {
-        const errorMessage = response.result?.message || 'Login failed. Please check your credentials.';
-        Alert.alert('Error', errorMessage);
+        const errorMessage = response.result?.message || 'Invalid username or password';
+        Alert.alert('Login Failed', errorMessage);
       }
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert('Error', 'An error occurred during login. Please check your internet connection and try again.');
+      const errorMessage = getErrorMessage(error);
+      Alert.alert('Login Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -214,13 +258,13 @@ export default function SignIn() {
         
         Alert.alert(
           'Success',
-          'Biometric login has been enabled successfully!'
+          'Fingerprint login has been enabled successfully! You can now use your fingerprint to login next time.'
         );
       } else {
         console.log('Biometric enrollment failed');
         Alert.alert(
           'Biometric Setup Failed',
-          'Failed to enable biometric login. You can try enabling it later from the profile settings.'
+          'Could not enable fingerprint login. Please make sure your device has fingerprint security set up and try again in profile settings.'
         );
       }
       
@@ -229,8 +273,8 @@ export default function SignIn() {
     } catch (error) {
       console.error('Error enabling biometric:', error);
       Alert.alert(
-        'Error',
-        'An error occurred while setting up biometric login. Please try again later.'
+        'Biometric Setup Error',
+        'There was a problem setting up fingerprint login. Please try again later in profile settings.'
       );
       setShowBiometricPrompt(false);
       router.replace('/home/HomeScreen');
@@ -247,7 +291,11 @@ export default function SignIn() {
     try {
       const savedUsername = await AsyncStorage.getItem('biometricUsername');
       if (!savedUsername) {
-        throw new Error('No saved credentials found for biometric login');
+        Alert.alert(
+          'Biometric Login Error',
+          'No saved credentials found. Please login with your username and password first.'
+        );
+        return;
       }
 
       const authenticated = await authenticateWithBiometric();
@@ -259,7 +307,7 @@ export default function SignIn() {
       console.error('Biometric login error:', error);
       Alert.alert(
         'Biometric Login Failed',
-        'Please try logging in with your username and password'
+        'Could not verify your fingerprint. Please try again or use your username and password.'
       );
     }
   };
