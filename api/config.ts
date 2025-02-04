@@ -1,4 +1,6 @@
 export const API_BASE_URL = 'https://uat.yelogroup.biz/api/v1';
+// Replace YOUR_IP_ADDRESS with your actual IP (e.g., 192.168.1.5)
+export const DASHBOARD_API_URL = 'http://192.168.1.176:3000/api';
 
 // Common headers
 export const DEFAULT_HEADERS = {

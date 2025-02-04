@@ -1,4 +1,4 @@
-import { API_BASE_URL, DEFAULT_HEADERS, API_ERROR_MESSAGES } from './config';
+import { API_BASE_URL, DEFAULT_HEADERS, API_ERROR_MESSAGES, DASHBOARD_API_URL } from './config';
 
 // Interface definitions for invoice data
 interface LocalizedString {
@@ -144,6 +144,7 @@ export const ENDPOINTS = {
     ATTACH_IMAGE: `${API_BASE_URL}/sales-order/attach-image`,
     CREATE_PAYMENT: `${API_BASE_URL}/sales-order/create-payment`,
     CANCELLED_INVOICES: `${API_BASE_URL}/sales-order/cancellations`,
+    CHECK_EMAIL: `${DASHBOARD_API_URL}/access/check-email`,
 };
 
 // Type for invoice receipts params
@@ -177,6 +178,16 @@ interface CancelledInvoicesResponse {
     result: {
         status: string;
         orders: CancelledOrder[];
+    };
+}
+
+// Interface for email check response
+interface EmailCheckResponse {
+    success: boolean;
+    data: {
+        email: string;
+        isAvailable: boolean;
+        exists: boolean;
     };
 }
 
@@ -426,6 +437,43 @@ export const fetchCancelledInvoices = async (params: CancelledInvoicesParams): P
 
         return data;
     } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
+// Function to check email availability
+export const checkEmailAvailability = async (email: string): Promise<EmailCheckResponse> => {
+    try {
+        console.log('[EMAIL CHECK] Checking email:', email);
+        console.log('[EMAIL CHECK] Using URL:', `${ENDPOINTS.CHECK_EMAIL}?email=${encodeURIComponent(email)}`);
+        
+        const response = await fetch(`${ENDPOINTS.CHECK_EMAIL}?email=${encodeURIComponent(email)}`, {
+            method: 'GET',
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            console.error('[EMAIL CHECK] Server error:', response.status, response.statusText);
+            throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        const data = await response.json();
+        console.log('[EMAIL CHECK] Response:', data);
+
+        if (!data || !data.data) {
+            console.error('[EMAIL CHECK] Invalid response:', data);
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        console.error('[EMAIL CHECK] Error:', error);
         if (error instanceof Error) {
             throw error;
         }
