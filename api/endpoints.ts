@@ -275,10 +275,17 @@ export const login = async (params: LoginParams): Promise<LoginResponse> => {
 // Function to fetch invoice receipts
 export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promise<InvoiceReceiptsResponse> => {
     try {
-        console.log('Calling fetchInvoiceReceipts with params:', params); // Add this log
-        const response = await fetch(ENDPOINTS.INVOICE_RECEIPTS, {
+        console.log('Calling fetchInvoiceReceipts with params:', params);
+        const invoiceReceiptsUrl = await getEndpointUrl(API_PATHS.INVOICE_RECEIPTS);
+        console.log('Invoice receipts URL:', invoiceReceiptsUrl);
+
+        const response = await fetch(invoiceReceiptsUrl, {
             method: 'POST',
-            headers: DEFAULT_HEADERS,
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 jsonrpc: '2.0',
                 id: null,
@@ -287,12 +294,12 @@ export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promi
         });
         
         if (!response.ok) {
-            console.error('Server error response:', response.status, response.statusText); // Add this log
+            console.error('Server error response:', response.status, response.statusText);
             throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
         }
 
         const data = await response.json();
-        console.log('Invoice receipts API response:', data); // Add this log
+        console.log('Invoice receipts API response:', data);
 
         if (!data || !data.result || !Array.isArray(data.result.orders)) {
             console.error('Invalid response structure:', data);
@@ -301,7 +308,7 @@ export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promi
 
         return data;
     } catch (error) {
-        console.error('API Error in fetchInvoiceReceipts:', error); // Updated error log
+        console.error('API Error in fetchInvoiceReceipts:', error);
         if (error instanceof Error) {
             throw error;
         }
@@ -312,9 +319,14 @@ export const fetchInvoiceReceipts = async (params: InvoiceReceiptsParams): Promi
 // Function to enroll biometric
 export const enrollBiometric = async (params: BiometricEnrollParams): Promise<BiometricEnrollResponse> => {
     try {
-        const response = await fetch(ENDPOINTS.SET_BIOMETRIC, {
+        const biometricUrl = await getEndpointUrl(API_PATHS.SET_BIOMETRIC);
+        const response = await fetch(biometricUrl, {
             method: 'POST',
-            headers: DEFAULT_HEADERS,
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 params: {
                     userId: params.userId,
@@ -345,9 +357,14 @@ export const enrollBiometric = async (params: BiometricEnrollParams): Promise<Bi
 // Function to apply discount adjustment
 export const applyDiscountAdjustment = async (params: DiscountAdjustmentParams): Promise<DiscountAdjustmentResponse> => {
     try {
-        const response = await fetch(ENDPOINTS.DISCOUNT_ADJUSTMENT, {
+        const discountUrl = await getEndpointUrl(API_PATHS.DISCOUNT_ADJUSTMENT);
+        const response = await fetch(discountUrl, {
             method: 'POST',
-            headers: DEFAULT_HEADERS,
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 jsonrpc: '2.0',
                 id: null,
@@ -383,9 +400,14 @@ export const applyDiscountAdjustment = async (params: DiscountAdjustmentParams):
 // Function to attach image
 export const attachImage = async (params: ImageAttachmentParams): Promise<ImageAttachmentResponse> => {
     try {
-        const response = await fetch(ENDPOINTS.ATTACH_IMAGE, {
+        const attachImageUrl = await getEndpointUrl(API_PATHS.ATTACH_IMAGE);
+        const response = await fetch(attachImageUrl, {
             method: 'POST',
-            headers: DEFAULT_HEADERS,
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 jsonrpc: '2.0',
                 id: null,
@@ -419,9 +441,14 @@ export const attachImage = async (params: ImageAttachmentParams): Promise<ImageA
 // Function to create payment
 export const createPayment = async (params: CreatePaymentParams): Promise<CreatePaymentResponse> => {
     try {
-        const response = await fetch(ENDPOINTS.CREATE_PAYMENT, {
+        const createPaymentUrl = await getEndpointUrl(API_PATHS.CREATE_PAYMENT);
+        const response = await fetch(createPaymentUrl, {
             method: 'POST',
-            headers: DEFAULT_HEADERS,
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 params: {
                     salesperson_id: params.salesperson_id,
@@ -460,9 +487,14 @@ export const createPayment = async (params: CreatePaymentParams): Promise<Create
 // Function to fetch cancelled invoices
 export const fetchCancelledInvoices = async (params: CancelledInvoicesParams): Promise<CancelledInvoicesResponse> => {
     try {
-        const response = await fetch(ENDPOINTS.CANCELLED_INVOICES, {
+        const cancelledInvoicesUrl = await getEndpointUrl(API_PATHS.CANCELLED_INVOICES);
+        const response = await fetch(cancelledInvoicesUrl, {
             method: 'POST',
-            headers: DEFAULT_HEADERS,
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 params: params
             }),
@@ -528,10 +560,15 @@ export const checkEmailAvailability = async (email: string): Promise<EmailCheckR
 export const changePassword = async (params: ChangePasswordParams): Promise<ChangePasswordResponse> => {
     try {
         console.log('[PASSWORD] Changing password for user:', params.userId);
+        const changePasswordUrl = await getEndpointUrl(API_PATHS.CHANGE_PASSWORD);
         
-        const response = await fetch(ENDPOINTS.CHANGE_PASSWORD, {
+        const response = await fetch(changePasswordUrl, {
             method: 'POST',
-            headers: DEFAULT_HEADERS,
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 params: {
                     userId: params.userId,

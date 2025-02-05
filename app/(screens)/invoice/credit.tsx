@@ -12,6 +12,7 @@ import type { RootState } from '../../../store/store';
 import { setOrderId } from '../../../store/userSlice';
 import { getUploadedInvoices, markInvoiceAsUploaded, isInvoiceUploaded, initDatabase } from '../../../store/database';
 import styles from '@/app/styles/invoiceReceipt/styles';
+import { fetchCompanyConfig } from '../../../api/config';
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -42,17 +43,17 @@ export default function CreditInvoicesScreen() {
   const dispatch = useDispatch();
   const userId = useSelector((state: RootState) => state.user.userId);
 
-  // Separate database initialization
+  // Initialize API configuration
   useEffect(() => {
-    const initDb = () => {
+    const initializeAPI = async () => {
       try {
-        initDatabase();
+        await fetchCompanyConfig();
       } catch (error) {
-        console.error('Database initialization error:', error);
-        setError('Failed to initialize database');
+        console.error('Failed to initialize API configuration:', error);
+        setError('Failed to initialize application. Please try again.');
       }
     };
-    initDb();
+    initializeAPI();
   }, []);
 
   // Updated data loading
@@ -61,6 +62,9 @@ export default function CreditInvoicesScreen() {
       try {
         setLoading(true);
         setError(null);
+        
+        // Initialize API configuration first
+        await fetchCompanyConfig();
         
         // Load uploaded invoices
         const uploaded = getUploadedInvoices();
