@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import MenuItem from '../../components/ui/MenuItem';
+import ImageUploadModal from '../(screens)/upload/ImageUploadModal';
 
 export default function MenuScreen() {
+  const [isImageUploadModalVisible, setImageUploadModalVisible] = useState(false);
+
   const handleNavigation = (screen: string) => {
     router.push(screen as any); // Type assertion needed for now
+  };
+
+  const handleImageUploadPress = () => {
+    setImageUploadModalVisible(true);
+  };
+
+  const handleGallerySelect = () => {
+    setImageUploadModalVisible(false);
+    // Navigate to gallery upload screen
+    handleNavigation('/(screens)/upload/gallery');
+  };
+
+  const handleBankSlipSelect = () => {
+    setImageUploadModalVisible(false);
+    // Navigate to bank slip upload screen
+    handleNavigation('/(screens)/upload/bank-slip');
   };
 
   return (
@@ -58,9 +77,16 @@ export default function MenuScreen() {
           iconImage={require('../../assets/icons/imageUpload.png')} 
           topText="Image"
           bottomText="Upload"
-          onPress={() => handleNavigation('/(screens)/upload/image')}
+          onPress={handleImageUploadPress}
         />
       </View>
+
+      <ImageUploadModal
+        visible={isImageUploadModalVisible}
+        onClose={() => setImageUploadModalVisible(false)}
+        onSelectGallery={handleGallerySelect}
+        onSelectBankSlip={handleBankSlipSelect}
+      />
     </View>
   );
 }
