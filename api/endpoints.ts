@@ -135,6 +135,22 @@ interface CreatePaymentResponse {
     };
 }
 
+// Password Change interfaces
+interface ChangePasswordParams {
+    userId: string;
+    currentPassword: string;
+    newPassword: string;
+}
+
+interface ChangePasswordResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        message: string;
+        success: boolean;
+    };
+}
+
 // Endpoint paths
 export const ENDPOINTS = {
     INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
@@ -145,6 +161,7 @@ export const ENDPOINTS = {
     CREATE_PAYMENT: `${API_BASE_URL}/sales-order/create-payment`,
     CANCELLED_INVOICES: `${API_BASE_URL}/sales-order/cancellations`,
     CHECK_EMAIL: `${DASHBOARD_API_URL}/access/check-email`,
+    CHANGE_PASSWORD: `${API_BASE_URL}/change-password`,
 };
 
 // Type for invoice receipts params
@@ -478,5 +495,47 @@ export const checkEmailAvailability = async (email: string): Promise<EmailCheckR
             throw error;
         }
         throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
+    }
+};
+
+// Function to change password
+export const changePassword = async (params: ChangePasswordParams): Promise<ChangePasswordResponse> => {
+    try {
+        console.log('[PASSWORD] Changing password for user:', params.userId);
+        
+        const response = await fetch(ENDPOINTS.CHANGE_PASSWORD, {
+            method: 'POST',
+            headers: DEFAULT_HEADERS,
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                params: {
+                    userId: params.userId,
+                    currentPassword: params.currentPassword,
+                    newPassword: params.newPassword
+                }
+            }),
+        });
+
+        if (!response.ok) {
+            console.error('[PASSWORD] Server error:', response.status, response.statusText);
+            throw new Error(API_ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        const data = await response.json();
+        console.log('[PASSWORD] Response:', data);
+
+        if (!data || !data.result) {
+            console.error('[PASSWORD] Invalid response:', data);
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        console.error('[PASSWORD] Error:', error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.PASSWORD_CHANGE_FAILED);
     }
 }; 

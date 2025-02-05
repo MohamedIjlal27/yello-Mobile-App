@@ -19,5 +19,7 @@ export const API_ERROR_MESSAGES = {
     SERVER_ERROR: 'Server error occurred',
     INVALID_RESPONSE: 'Invalid response from server',
     INVALID_CREDENTIALS: 'Invalid credentials',
-    USER_NOT_FOUND: 'User not found'
+    USER_NOT_FOUND: 'User not found',
+    PASSWORD_CHANGE_FAILED: 'Failed to change password',
+    INVALID_PASSWORD: 'Invalid password format'
 }; 
