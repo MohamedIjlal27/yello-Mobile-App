@@ -36,7 +36,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   }, []);
 
   // Use database data if available, fallback to props
-  const displayName = localUserData?.emp_name || name;
+  const fullName = localUserData?.emp_name || name;
+  // Get the first actual name by finding the first name part that is longer than 1 character
+  const nameParts = fullName.split(' ');
+  const displayName = nameParts.find((part: string) => part.length > 1) || fullName;
   const displayRole = localUserData?.job_title || role;
   const displayPic = localUserData?.profile_pic || profilePic;
 
