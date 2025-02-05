@@ -150,6 +150,20 @@ interface ChangePasswordResponse {
     };
 }
 
+// Credit Invoice interfaces
+interface CreditInvoiceParams {
+    salesperson_id: string;
+}
+
+interface CreditInvoiceResponse {
+    jsonrpc: string;
+    id: null;
+    result: {
+        message: string;
+        credit_invoices: any[]; // Update this type based on actual credit invoice structure
+    };
+}
+
 // Function to get the full endpoint URL
 const getEndpointUrl = async (path: string): Promise<string> => {
     const baseUrl = await getApiBaseUrl();
@@ -167,6 +181,7 @@ const API_PATHS = {
     CANCELLED_INVOICES: '/sales-order/cancellations',
     CHECK_EMAIL: `${DASHBOARD_API_URL}/access/check-email`,
     CHANGE_PASSWORD: '/set-password',
+    CREDIT_INVOICES: '/credit-invoices',
 };
 
 // Export endpoints that will be constructed with the dynamic base URL
@@ -546,5 +561,52 @@ export const changePassword = async (params: ChangePasswordParams): Promise<Chan
             throw error;
         }
         throw new Error(API_ERROR_MESSAGES.PASSWORD_CHANGE_FAILED);
+    }
+};
+
+// Function to fetch credit invoices
+export const fetchCreditInvoices = async (params: CreditInvoiceParams): Promise<CreditInvoiceResponse> => {
+    try {
+        console.log('Fetching credit invoices with params:', params);
+        const creditInvoicesUrl = await getEndpointUrl(API_PATHS.CREDIT_INVOICES);
+        console.log('Credit invoices URL:', creditInvoicesUrl);
+
+        const response = await fetch(creditInvoicesUrl, {
+            method: 'POST',
+            headers: {
+                ...DEFAULT_HEADERS,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: null,
+                params: params
+            }),
+        });
+        
+        console.log('Credit invoices response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Credit invoices response data:', data);
+
+        if (!data || !data.result) {
+            console.error('Invalid response structure:', data);
+            throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error in fetchCreditInvoices:', error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(API_ERROR_MESSAGES.NETWORK_ERROR);
     }
 }; 

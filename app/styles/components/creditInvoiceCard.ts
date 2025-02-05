@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
+      marginRight: spacing.sm,
     },
     closeIcon: {
       width: scale(24),
@@ -134,9 +135,10 @@ const styles = StyleSheet.create({
     },
     invoiceNumber: {
       fontSize: typography.title,
-      fontWeight: '700',
+      fontWeight: '600',
       color: '#000000',
       marginBottom: spacing.xs,
+      flexShrink: 1,
     },
     date: {
       fontSize: typography.caption,
@@ -145,22 +147,21 @@ const styles = StyleSheet.create({
     amountSection: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginLeft: spacing.md,
-      paddingLeft: spacing.md,
-      paddingVertical: spacing.sm,
+      marginLeft: spacing.sm,
+      paddingLeft: spacing.sm,
       borderLeftWidth: 1,
       borderLeftColor: '#E5E7EB',
     },
     currency: {
-      fontSize: typography.body,
+      fontSize: typography.caption,
       color: '#6B7280',
       marginRight: spacing.xs,
     },
     amount: {
-      fontSize: typography.header,
-      fontWeight: '700',
+      fontSize: typography.title,
+      fontWeight: '600',
       color: '#000000',
-      marginRight: spacing.md,
+      marginRight: spacing.sm,
     },
     payButton: {
       backgroundColor: '#FF0000',

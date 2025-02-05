@@ -6,7 +6,7 @@ import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import RecordPaymentModal from './components/RecordPaymentModal';
-import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
+import { fetchCreditInvoices } from '../../../api/endpoints';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../../store/store';
 import { setOrderId } from '../../../store/userSlice';
@@ -20,6 +20,12 @@ const formatDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+// Add function to format invoice number
+const formatInvoiceNumber = (invoiceId: string): string => {
+  // Remove 'INV/' prefix and any leading/trailing whitespace
+  return invoiceId.replace(/^INV\/?/i, '').trim();
+};
+
 export default function CreditInvoicesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<number | null>(null);
@@ -28,7 +34,7 @@ export default function CreditInvoicesScreen() {
   const [isPayModalVisible, setIsPayModalVisible] = useState(false);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
   const [showRecordPayment, setShowRecordPayment] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [creditInvoices, setCreditInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,7 +55,7 @@ export default function CreditInvoicesScreen() {
     initDb();
   }, []);
 
-  // Separate data loading
+  // Updated data loading
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -60,8 +66,8 @@ export default function CreditInvoicesScreen() {
         const uploaded = getUploadedInvoices();
         setUploadedInvoices(uploaded);
         
-        // Load invoice receipts
-        await loadInvoiceReceipts();
+        // Load credit invoices
+        await loadCreditInvoices();
       } catch (error) {
         console.error('Error loading data:', error);
         setError('Failed to load data');
@@ -73,22 +79,57 @@ export default function CreditInvoicesScreen() {
     loadData();
   }, []);
 
-  const loadInvoiceReceipts = async () => {
+  const loadCreditInvoices = async () => {
     try {
       setError(null);
-      const today = formatDate(new Date());
-      const response = await fetchInvoiceReceipts({ 
-        salesperson_id: userId, 
-        date: today
-      });
-      
-      if (response.result && response.result.orders) {
-        setOrders(response.result.orders);
-      } else {
-        setError('No orders found in the response');
+      console.log('Debug - userId from Redux:', userId);
+      console.log('Debug - userId type:', typeof userId);
+
+      if (!userId) {
+        setError('User ID not found. Please login again.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetchCreditInvoices({ 
+          salesperson_id: userId.toString()
+        });
+        
+        console.log('Credit Invoices Full Response:', response);
+
+        if (response.result) {
+          if (Array.isArray(response.result.credit_invoices)) {
+            console.log('Credit Invoices Data:', response.result.credit_invoices);
+            setCreditInvoices(response.result.credit_invoices);
+            if (response.result.credit_invoices.length === 0) {
+              setError('No credit invoices available');
+            }
+          } else {
+            console.log('Invalid credit_invoices format:', response.result.credit_invoices);
+            setCreditInvoices([]);
+            setError('No credit invoices available');
+          }
+        } else {
+          console.log('Invalid response format:', response);
+          setCreditInvoices([]);
+          setError('No credit invoices available');
+        }
+      } catch (fetchError) {
+        throw fetchError;
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to load invoices');
+      console.error('Credit Invoices Error:', error);
+      if (error instanceof Error) {
+        if (error.message.includes('Network request failed')) {
+          setError('Unable to connect to server. Please check your internet connection and try again.');
+        } else {
+          setError(`Unable to load credit invoices: ${error.message}`);
+        }
+      } else {
+        setError('Unable to load credit invoices. Please try again later.');
+      }
+      setCreditInvoices([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -97,7 +138,7 @@ export default function CreditInvoicesScreen() {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    loadInvoiceReceipts();
+    loadCreditInvoices();
   }, []);
 
   const handleSearch = (text: string) => {
@@ -107,11 +148,11 @@ export default function CreditInvoicesScreen() {
 
   const handlePay = (index: number) => {
     try {
-      const order = orders[index];
-      if (!isInvoiceUploaded(order.order_id)) {
+      const invoice = creditInvoices[index];
+      if (!isInvoiceUploaded(invoice.order_id)) {
         // Show upload invoice modal if invoice hasn't been uploaded
         setSelectedInvoice(index);
-        dispatch(setOrderId(order.order_id.toString()));
+        dispatch(setOrderId(invoice.order_id.toString()));
         setIsPayModalVisible(true);
       } else {
         // Show record payment modal if invoice has been uploaded
@@ -130,7 +171,7 @@ export default function CreditInvoicesScreen() {
 
   const handleCancel = (index: number) => {
     setSelectedInvoice(index);
-    dispatch(setOrderId(orders[index].order_id.toString()));
+    dispatch(setOrderId(creditInvoices[index].order_id.toString()));
     setIsCancelModalVisible(true);
   };
 
@@ -158,8 +199,8 @@ export default function CreditInvoicesScreen() {
 
   const handleNextProduct = () => {
     if (selectedInvoice !== null && 
-        orders[selectedInvoice].order_lines && 
-        selectedProduct < orders[selectedInvoice].order_lines.length - 1) {
+        creditInvoices[selectedInvoice].order_lines && 
+        selectedProduct < creditInvoices[selectedInvoice].order_lines.length - 1) {
       setSelectedProduct(prev => prev + 1);
     }
   };
@@ -179,7 +220,7 @@ export default function CreditInvoicesScreen() {
   const handleUploadInvoice = () => {
     try {
       if (selectedInvoice !== null) {
-        const orderId = orders[selectedInvoice].order_id;
+        const orderId = creditInvoices[selectedInvoice].order_id;
         markInvoiceAsUploaded(orderId);
         setUploadedInvoices(prev => new Set([...prev, orderId]));
       }
@@ -192,7 +233,7 @@ export default function CreditInvoicesScreen() {
   const handleAcceptPayment = () => {
     try {
       if (selectedInvoice !== null) {
-        const orderId = orders[selectedInvoice].order_id;
+        const orderId = creditInvoices[selectedInvoice].order_id;
         markInvoiceAsUploaded(orderId);
         setUploadedInvoices(prev => new Set([...prev, orderId]));
         setIsPayModalVisible(false);
@@ -205,7 +246,10 @@ export default function CreditInvoicesScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
+      {console.log('Credit Invoices State:', creditInvoices)}
+      {console.log('Loading State:', loading)}
+      {console.log('Error State:', error)}
       <CustomSearchBar
         value={searchQuery}
         onChangeText={handleSearch}
@@ -214,107 +258,107 @@ export default function CreditInvoicesScreen() {
       {loading && !refreshing ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
-          <Text style={styles.loadingText}>Loading invoices...</Text>
+          <Text style={styles.loadingText}>Loading credit invoices...</Text>
         </View>
       ) : error ? (
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
-      ) : orders.length === 0 ? (
+      ) : creditInvoices.length === 0 ? (
         <View style={styles.centerContainer}>
-          <Text style={styles.noDataText}>No invoices found</Text>
+          <Text style={styles.noDataText}>No credit invoices found</Text>
         </View>
       ) : (
         <ScrollView 
-          style={styles.scrollView}
+          style={[styles.scrollView, { flex: 1 }]}
+          contentContainerStyle={{ paddingBottom: 20 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#FF0000"]} // Android
-              tintColor="#FF0000" // iOS
+              colors={["#FF0000"]}
+              tintColor="#FF0000"
             />
           }
         >
-          {orders.map((order, index) => (
-            <React.Fragment key={order.order_number}>
-              <InvoiceCard
-                shopName={order.customer.name}
-                address={{
-                  street: order.customer.address?.split(',')[0]?.trim() || '',
-                  city: order.customer.address?.split(',')[1]?.trim() || '',
-                  state: order.customer.address?.split(',')[2]?.trim() || '',
-                  postalCode: order.customer.address?.split(',')[3]?.trim() || ''
-                }}
-                invoiceNumber={order.order_number.toString()}
-                date={new Date(order.order_date).toLocaleDateString()}
-                amount={order.total_amount}
-                onPay={() => handlePay(index)}
-                onLocate={handleLocate}
-                onPress={() => handleInvoicePress(index)}
-                onCancel={() => handleCancel(index)}
-              />
-              {selectedInvoice === index && order.order_lines && isModalVisible && (
-                <InvoiceDetailsModal
-                  currentIndex={selectedProduct + 1}
-                  totalItems={order.order_lines.length}
-                  details={{
-                    productName: order.order_lines[selectedProduct].product_name.en_US,
-                    quantity: order.order_lines[selectedProduct].quantity,
-                    uom: order.order_lines[selectedProduct].uom.en_US,
-                    unitPrice: order.order_lines[selectedProduct].unit_price,
-                    amount: order.order_lines[selectedProduct].line_amount,
-                    discount_percentage: order.order_lines[selectedProduct].discount_percentage
+          {creditInvoices.map((invoice, index) => {
+            console.log('Rendering invoice:', invoice);
+
+            // Add safety check for invoice object
+            if (!invoice) {
+              console.log('Invalid invoice data at index', index, invoice);
+              return null;
+            }
+
+            // Create a customer object that matches the expected structure
+            const customer = {
+              name: invoice.cus_name,
+              address: invoice.cus_addr
+            };
+
+            return (
+              <View key={invoice.inv_id || index} style={{ marginBottom: 10 }}>
+                <InvoiceCard
+                  shopName={invoice.cus_name || 'N/A'}
+                  address={{
+                    street: invoice.cus_addr || 'N/A',
+                    city: '',
+                    state: '',
+                    postalCode: ''
                   }}
-                  onSwipeLeft={handleNextProduct}
-                  onSwipeRight={handlePreviousProduct}
+                  invoiceNumber={formatInvoiceNumber(invoice.inv_id || 'N/A')}
+                  date={invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString() : 'N/A'}
+                  amount={invoice.amount_total || 0}
+                  onPay={() => handlePay(index)}
+                  onLocate={handleLocate}
+                  onPress={() => handleInvoicePress(index)}
+                  onCancel={() => handleCancel(index)}
                 />
-              )}
-            </React.Fragment>
-          ))}
+              </View>
+            );
+          })}
         </ScrollView>
       )}
 
-      {selectedInvoice !== null && isPayModalVisible && (
+      {selectedInvoice !== null && isPayModalVisible && creditInvoices[selectedInvoice] && (
         <UploadInvoiceModal
-          shopName={orders[selectedInvoice].customer.name}
+          shopName={creditInvoices[selectedInvoice].cus_name || 'N/A'}
           paymentType="Cash"
           dueDate="21 Days"
-          amount={orders[selectedInvoice].total_amount}
-          orderId={orders[selectedInvoice].order_id}
+          amount={creditInvoices[selectedInvoice].amount_total || 0}
+          orderId={creditInvoices[selectedInvoice].inv_ref}
           onClose={handleClosePayModal}
           onUpload={handleUploadInvoice}
           onAcceptPayment={handleAcceptPayment}
         />
       )}
 
-      {selectedInvoice !== null && showRecordPayment && (
+      {selectedInvoice !== null && showRecordPayment && creditInvoices[selectedInvoice] && (
         <RecordPaymentModal
           visible={showRecordPayment}
-          shopName={orders[selectedInvoice].customer.name}
+          shopName={creditInvoices[selectedInvoice].cus_name || 'N/A'}
           dueDate="21 Days"
-          amount={orders[selectedInvoice].total_amount}
-          orderId={orders[selectedInvoice].order_id}
+          amount={creditInvoices[selectedInvoice].amount_total || 0}
+          orderId={creditInvoices[selectedInvoice].inv_ref}
           onClose={() => {
             setShowRecordPayment(false);
             setSelectedInvoice(null);
           }}
           onSubmit={(paymentType, amount, additionalData) => {
-            // Handle payment submission
             setShowRecordPayment(false);
             setSelectedInvoice(null);
           }}
         />
       )}
 
-      {selectedInvoice !== null && isCancelModalVisible && (
+      {selectedInvoice !== null && isCancelModalVisible && creditInvoices[selectedInvoice] && (
         <CancelBillModal
-          invoiceNo={orders[selectedInvoice].order_number.toString()}
-          customer={orders[selectedInvoice].customer.name}
-          amount={orders[selectedInvoice].total_amount}
+          invoiceNo={creditInvoices[selectedInvoice].inv_id || 'N/A'}
+          customer={creditInvoices[selectedInvoice].cus_name || 'N/A'}
+          amount={creditInvoices[selectedInvoice].amount_total || 0}
           onProceed={handleProceedCancel}
           onDiscard={handleDiscardCancel}
-          onRefresh={loadInvoiceReceipts}
+          onRefresh={loadCreditInvoices}
         />
       )}
     </View>

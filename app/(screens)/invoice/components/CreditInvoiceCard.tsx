@@ -40,9 +40,18 @@ const CreditInvoiceCard: React.FC<CreditInvoiceCard> = ({
   onPress,
   onCancel,
 }) => {
+  console.log('CreditInvoiceCard Props:', {
+    shopName,
+    address,
+    invoiceNumber,
+    date,
+    amount
+  });
+
   const MAX_CHARS_PER_LINE = 30;
 
   const formatAddress = (address: AddressProps) => {
+    console.log('Formatting address:', address);
     // Filter out empty or undefined parts and remove duplicates
     const parts = [...new Set([
       address.street,
@@ -51,10 +60,13 @@ const CreditInvoiceCard: React.FC<CreditInvoiceCard> = ({
       address.postalCode
     ].filter(Boolean))];
     
+    console.log('Formatted address parts:', parts);
+    
     return (
       <Text style={styles.addressText}>
         {parts.map((part, index) => {
-          if (part && part.length > MAX_CHARS_PER_LINE) {
+          if (!part) return '';
+          if (part.length > MAX_CHARS_PER_LINE) {
             const lines = part.match(new RegExp(`.{1,${MAX_CHARS_PER_LINE}}`, 'g')) || [part];
             return lines.map((line, lineIndex) => 
               `${line.trim()}${(lineIndex < lines.length - 1 || index < parts.length - 1) ? '\n' : ''}`
@@ -65,6 +77,11 @@ const CreditInvoiceCard: React.FC<CreditInvoiceCard> = ({
       </Text>
     );
   };
+
+  if (!shopName || !invoiceNumber) {
+    console.log('Missing required props:', { shopName, invoiceNumber });
+    return null;
+  }
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -97,12 +114,12 @@ const CreditInvoiceCard: React.FC<CreditInvoiceCard> = ({
             </TouchableOpacity>
             <View>
               <Text style={styles.invoiceNumber}>{invoiceNumber}</Text>
-              <Text style={styles.date}>{date}</Text>
+              <Text style={styles.date}>{date || 'N/A'}</Text>
             </View>
           </View>
           <View style={styles.amountSection}>
             <Text style={styles.currency}>LKR</Text>
-            <Text style={styles.amount}>{formatAmount(amount)}</Text>
+            <Text style={styles.amount}>{formatAmount(amount || 0)}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={onPay} style={styles.payButton}>
