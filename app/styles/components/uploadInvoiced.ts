@@ -20,13 +20,14 @@ const styles = StyleSheet.create({
       width: '90%',
       maxWidth: 400,
       padding: 16,
-      height: 652
+      maxHeight: '90%',
+      minHeight: 400,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 24,
+      marginBottom: 16,
     },
     title: {
       fontSize: 18,
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
       backgroundColor: '#FFFDD8',
       borderRadius: 8,
       padding: 16,
-      marginBottom: 24,
+      marginBottom: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
       backgroundColor: '#F3F4F6',
       borderRadius: 8,
       overflow: 'hidden',
-      marginTop: 16,
+      marginVertical: 16,
     },
     previewImage: {
       width: '100%',
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
       backgroundColor: '#F3F4F6',
       borderRadius: 8,
       padding: 16,
-      marginTop: 160,
+      marginTop: 16,
       gap: 8,
     },
     retakeButton: {
@@ -119,7 +120,8 @@ const styles = StyleSheet.create({
       borderRadius: 8,
       padding: 16,
       alignItems: 'center',
-      marginTop: 200,
+      marginTop: 16,
+      marginBottom: 16,
     },
     acceptButtonDisabled: {
       backgroundColor: '#E5E7EB',

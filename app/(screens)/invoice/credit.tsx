@@ -153,10 +153,10 @@ export default function CreditInvoicesScreen() {
   const handlePay = (index: number) => {
     try {
       const invoice = creditInvoices[index];
-      if (!isInvoiceUploaded(invoice.order_id)) {
+      if (!isInvoiceUploaded(invoice.inv_ref)) {
         // Show upload invoice modal if invoice hasn't been uploaded
         setSelectedInvoice(index);
-        dispatch(setOrderId(invoice.order_id.toString()));
+        dispatch(setOrderId(invoice.inv_ref.toString()));
         setIsPayModalVisible(true);
       } else {
         // Show record payment modal if invoice has been uploaded
@@ -175,7 +175,7 @@ export default function CreditInvoicesScreen() {
 
   const handleCancel = (index: number) => {
     setSelectedInvoice(index);
-    dispatch(setOrderId(creditInvoices[index].order_id.toString()));
+    dispatch(setOrderId(creditInvoices[index].inv_ref.toString()));
     setIsCancelModalVisible(true);
   };
 
@@ -224,7 +224,7 @@ export default function CreditInvoicesScreen() {
   const handleUploadInvoice = () => {
     try {
       if (selectedInvoice !== null) {
-        const orderId = creditInvoices[selectedInvoice].order_id;
+        const orderId = creditInvoices[selectedInvoice].inv_ref;
         markInvoiceAsUploaded(orderId);
         setUploadedInvoices(prev => new Set([...prev, orderId]));
       }
@@ -237,7 +237,7 @@ export default function CreditInvoicesScreen() {
   const handleAcceptPayment = () => {
     try {
       if (selectedInvoice !== null) {
-        const orderId = creditInvoices[selectedInvoice].order_id;
+        const orderId = creditInvoices[selectedInvoice].inv_ref;
         markInvoiceAsUploaded(orderId);
         setUploadedInvoices(prev => new Set([...prev, orderId]));
         setIsPayModalVisible(false);
