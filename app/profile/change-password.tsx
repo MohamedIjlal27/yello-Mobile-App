@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import CustomTextInput from '../../components/ui/CustomTextInput';
-import CustomButton from '../../components/ui/CustomButton';
 import { changePassword } from '../../api/endpoints';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
@@ -123,13 +122,15 @@ export default function ChangePassword() {
             Password must be at least 8 characters long and contain both letters and numbers
           </Text>
 
-          <CustomButton 
+          <TouchableOpacity 
             onPress={handleChangePassword}
             disabled={isLoading}
-            style={styles.button}
+            style={[styles.button, isLoading && styles.buttonDisabled]}
           >
-            {isLoading ? 'Changing Password...' : 'Change Password'}
-          </CustomButton>
+            <Text style={styles.buttonText}>
+              {isLoading ? 'Changing Password...' : 'Change Password'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -164,5 +165,23 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 20,
+    backgroundColor: '#2196F3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    width: '100%',
+  },
+  buttonDisabled: {
+    backgroundColor: '#CCCCCC',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: 'Inter',
+    textAlign: 'center',
   },
 }); 

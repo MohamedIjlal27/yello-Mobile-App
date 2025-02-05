@@ -192,6 +192,17 @@ const ProfileModal = ({ visible, onClose, name, role, profilePic }: ProfileModal
               </TouchableOpacity>
             )}
 
+            {/* Change Password Button */}
+            <TouchableOpacity 
+              style={styles.changePasswordButton}
+              onPress={() => {
+                onClose();
+                router.push('/profile/change-password');
+              }}
+            >
+              <Text style={styles.changePasswordText}>Change Password</Text>
+            </TouchableOpacity>
+
             {/* Logout Button */}
             <TouchableOpacity 
               style={styles.logoutButton}
@@ -319,6 +330,24 @@ const styles = StyleSheet.create({
     height: 12,
     backgroundColor: '#2196F3',
     borderRadius: 2,
+  },
+  changePasswordButton: {
+    backgroundColor: '#2196F3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    width: '100%',
+    marginBottom: 12,
+  },
+  changePasswordText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: 'Inter',
+    textAlign: 'center',
   },
 });
 
