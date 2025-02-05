@@ -1,4 +1,4 @@
-import { API_BASE_URL, DEFAULT_HEADERS, API_ERROR_MESSAGES, DASHBOARD_API_URL } from './config';
+import { DASHBOARD_API_URL, DEFAULT_HEADERS, API_ERROR_MESSAGES, getApiBaseUrl } from './config';
 
 // Interface definitions for invoice data
 interface LocalizedString {
@@ -150,17 +150,29 @@ interface ChangePasswordResponse {
     };
 }
 
-// Endpoint paths
-export const ENDPOINTS = {
-    INVOICE_RECEIPTS: `${API_BASE_URL}/getInvoiceReceipts`,
-    LOGIN: `${API_BASE_URL}/login`,
-    SET_BIOMETRIC: `${API_BASE_URL}/setbiometric`,
-    DISCOUNT_ADJUSTMENT: `${API_BASE_URL}/sales-order/cancel`,
-    ATTACH_IMAGE: `${API_BASE_URL}/sales-order/attach-image`,
-    CREATE_PAYMENT: `${API_BASE_URL}/sales-order/create-payment`,
-    CANCELLED_INVOICES: `${API_BASE_URL}/sales-order/cancellations`,
+// Function to get the full endpoint URL
+const getEndpointUrl = async (path: string): Promise<string> => {
+    const baseUrl = await getApiBaseUrl();
+    return `${baseUrl}${path}`;
+};
+
+// Endpoint paths without base URL
+const API_PATHS = {
+    INVOICE_RECEIPTS: '/getInvoiceReceipts',
+    LOGIN: '/login',
+    SET_BIOMETRIC: '/setbiometric',
+    DISCOUNT_ADJUSTMENT: '/sales-order/cancel',
+    ATTACH_IMAGE: '/sales-order/attach-image',
+    CREATE_PAYMENT: '/sales-order/create-payment',
+    CANCELLED_INVOICES: '/sales-order/cancellations',
     CHECK_EMAIL: `${DASHBOARD_API_URL}/access/check-email`,
-    CHANGE_PASSWORD: `${API_BASE_URL}/set-password`,
+    CHANGE_PASSWORD: '/set-password',
+};
+
+// Export endpoints that will be constructed with the dynamic base URL
+export const ENDPOINTS = {
+    ...API_PATHS,
+    getFullUrl: getEndpointUrl
 };
 
 // Type for invoice receipts params
@@ -210,7 +222,8 @@ interface EmailCheckResponse {
 // Function to login
 export const login = async (params: LoginParams): Promise<LoginResponse> => {
     try {
-        const response = await fetch(ENDPOINTS.LOGIN, {
+        const loginUrl = await getEndpointUrl(API_PATHS.LOGIN);
+        const response = await fetch(loginUrl, {
             method: 'POST',
             headers: DEFAULT_HEADERS,
             body: JSON.stringify({
@@ -228,16 +241,15 @@ export const login = async (params: LoginParams): Promise<LoginResponse> => {
         }
 
         const data = await response.json();
-        console.log('Login Response:', data); // Add logging to debug
+        console.log('Login Response:', data);
 
-        // Update validation to match actual response structure
         if (!data || !data.result) {
             throw new Error(API_ERROR_MESSAGES.INVALID_RESPONSE);
         }
 
         return data;
     } catch (error) {
-        console.error('API Error:', error); // Add error logging
+        console.error('API Error:', error);
         if (error instanceof Error) {
             throw error;
         }
