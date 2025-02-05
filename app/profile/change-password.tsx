@@ -12,7 +12,7 @@ export default function ChangePassword() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const userId = useSelector((state: RootState) => state.user.userId);
+  const empId = useSelector((state: RootState) => state.user.empId);
 
   const validatePassword = (password: string): boolean => {
     // At least 8 characters, containing letters and numbers
@@ -40,15 +40,20 @@ export default function ChangePassword() {
         return;
       }
 
+      if (!empId) {
+        Alert.alert('Error', 'User ID not found');
+        return;
+      }
+
       setIsLoading(true);
 
       const response = await changePassword({
-        userId: userId,
-        currentPassword,
-        newPassword
+        userId: empId.toString(),
+        isTemp: "FALSE",
+        password: newPassword
       });
 
-      if (response.result.success) {
+      if (response.result.message) {
         Alert.alert(
           'Success',
           'Password changed successfully. Please login again with your new password.',
@@ -56,20 +61,17 @@ export default function ChangePassword() {
             {
               text: 'OK',
               onPress: async () => {
-                // Clear stored credentials
-                await AsyncStorage.removeItem('biometricEnabled');
-                await AsyncStorage.removeItem('biometricUsername');
-                await AsyncStorage.removeItem('rememberedUsername');
-                await AsyncStorage.removeItem('rememberMe');
-                
-                // Navigate to login
+                await AsyncStorage.multiRemove([
+                  'biometricEnabled',
+                  'biometricUsername',
+                  'rememberedUsername',
+                  'rememberMe'
+                ]);
                 router.replace('/auth/signin');
               }
             }
           ]
         );
-      } else {
-        Alert.alert('Error', response.result.message || 'Failed to change password');
       }
     } catch (error) {
       console.error('Change password error:', error);

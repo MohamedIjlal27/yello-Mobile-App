@@ -138,8 +138,8 @@ interface CreatePaymentResponse {
 // Password Change interfaces
 interface ChangePasswordParams {
     userId: string;
-    currentPassword: string;
-    newPassword: string;
+    isTemp: string;
+    password: string;
 }
 
 interface ChangePasswordResponse {
@@ -147,7 +147,6 @@ interface ChangePasswordResponse {
     id: null;
     result: {
         message: string;
-        success: boolean;
     };
 }
 
@@ -161,7 +160,7 @@ export const ENDPOINTS = {
     CREATE_PAYMENT: `${API_BASE_URL}/sales-order/create-payment`,
     CANCELLED_INVOICES: `${API_BASE_URL}/sales-order/cancellations`,
     CHECK_EMAIL: `${DASHBOARD_API_URL}/access/check-email`,
-    CHANGE_PASSWORD: `${API_BASE_URL}/change-password`,
+    CHANGE_PASSWORD: `${API_BASE_URL}/set-password`,
 };
 
 // Type for invoice receipts params
@@ -507,12 +506,10 @@ export const changePassword = async (params: ChangePasswordParams): Promise<Chan
             method: 'POST',
             headers: DEFAULT_HEADERS,
             body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: null,
                 params: {
                     userId: params.userId,
-                    currentPassword: params.currentPassword,
-                    newPassword: params.newPassword
+                    isTemp: params.isTemp,
+                    password: params.password
                 }
             }),
         });
