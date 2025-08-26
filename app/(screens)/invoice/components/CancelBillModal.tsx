@@ -11,7 +11,7 @@ import CloseIcon from '../../../../assets/icons/close.svg';
 import DiscountAdjustmentIcon from '../../../../assets/icons/discountAdjustment.svg';
 import CommentIcon from '../../../../assets/icons/comments.svg';
 import CustomDropdown from '../../../../components/ui/CustomDropdown';
-import { applyDiscountAdjustment } from '../../../../api/endpoints';
+import { demoResponses } from '../../../../utils/demoData';
 import styles from '@/app/styles/components/cancelBillModal';
 
 interface CancelBillModalProps {
@@ -208,7 +208,11 @@ const CancelBillModal = ({
                   value: discount
                 };
                 
-                await applyDiscountAdjustment(requestParams);
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Demo response - always successful
+                const response = demoResponses.success;
                 Toast.show({
                   type: 'success',
                   text1: selectedOption === 'cancel' ? 'Bill Cancelled' : 'Discount Added',

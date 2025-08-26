@@ -80,10 +80,17 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             </View>
           </View>
         </View>
-        <TouchableOpacity style={styles.locateButton} onPress={onLocate}>
-          <LocationIcon width={14} height={18} style={styles.locateIcon} />
-          <Text style={styles.locateText}>Locate</Text>
-        </TouchableOpacity>
+        <View style={styles.locateSection}>
+          <TouchableOpacity style={styles.locateButton} onPress={onLocate}>
+            <LocationIcon width={14} height={18} style={styles.locateIcon} />
+            <Text style={styles.locateText}>Locate</Text>
+          </TouchableOpacity>
+          <Text style={styles.date}>{date}</Text>
+          <View style={styles.priceSection}>
+            <Text style={styles.currency}>LKR</Text>
+            <Text style={styles.amount}>{formatAmount(amount)}</Text>
+          </View>
+        </View>
       </View>
 
       {/* Separator Line */}
@@ -96,14 +103,11 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             <TouchableOpacity onPress={onCancel}>
               <RedCloseIcon width={27} height={27} style={styles.closeIcon} />
             </TouchableOpacity>
-            <View>
-              <Text style={styles.invoiceNumber}>{invoiceNumber}</Text>
-              <Text style={styles.date}>{date}</Text>
+            <View style={styles.invoiceDetails}>
+              <Text style={styles.invoiceNumber} numberOfLines={1} ellipsizeMode="tail">
+                {invoiceNumber}
+              </Text>
             </View>
-          </View>
-          <View style={styles.amountSection}>
-            <Text style={styles.currency}>LKR</Text>
-            <Text style={styles.amount}>{formatAmount(amount)}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={onPay} style={styles.payButton}>

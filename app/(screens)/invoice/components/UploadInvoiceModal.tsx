@@ -7,12 +7,11 @@ import RetakeIcon from '../../../../assets/icons/retake.svg';
 import { BlurView } from 'expo-blur';
 import RecordPaymentModal from './RecordPaymentModal';
 import baseStyles from '@/app/styles/components/uploadInvoiced';
-import { attachImage } from '@/api/endpoints';
 import { RootState } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { setBankAccounts, setCustomerAccounts } from '../../../../store/slices/bankAccountSlice';
 import { initDatabase, insertBankAccounts, insertCustomerAccounts, BankAccount, CustomerAccount } from '../../../../store/database';
-import type { ImageAttachmentResponse } from '@/api/endpoints';
+import { demoResponses, demoBankAccounts, demoCustomerAccounts } from '@/utils/demoData';
 
 interface UploadInvoiceModalProps {
   shopName: string;
@@ -138,32 +137,18 @@ const UploadInvoiceModal = ({
 
         setIsUploading(true);
 
-        const response: ImageAttachmentResponse = await attachImage({
-          sales_order_id: validOrderId,
-          image_base64: capturedImage.base64,
-          filename: imageFilename
-        });
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        if (response?.result?.error) {
-          setIsUploading(false);
-          Alert.alert(
-            'Upload Failed',
-            response.result.error || 'Failed to upload invoice image',
-            [{ text: 'OK' }]
-          );
-          return;
-        }
-
-        if (!response?.result?.attachment_id) {
-          setIsUploading(false);
-          Alert.alert(
-            'Upload Failed',
-            'Failed to upload invoice image',
-            [{ text: 'OK' }]
-          );
-          return;
-        }
-
+        const response = {
+          result: {
+            attachment_id: 12345,
+            message: "Image uploaded successfully",
+            bank_accounts: demoBankAccounts,
+            customer_accounts: demoCustomerAccounts
+          }
+        };
+        
         // Store bank account details directly in Redux and SQLite
         if (response.result.bank_accounts) {
           const bankAccounts: BankAccount[] = Object.entries(response.result.bank_accounts).map(([id, value]) => ({

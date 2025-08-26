@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-nat
 import InvoiceCard from './components/CancelledInvoiceCard';
 import CustomSearchBar from '@/components/ui/CustomSearchBar';
 import styles from '@/app/styles/cancelled/styles';
-import { fetchCancelledInvoices, fetchInvoiceReceipts, CancelledOrder, Order } from '@/api/endpoints';
+import { demoCancelledInvoices, demoInvoiceReceipts, DemoCancelledOrder, DemoOrder } from '@/utils/demoData';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 
@@ -21,8 +21,8 @@ export default function CancelledInvoicesScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPayModalVisible, setIsPayModalVisible] = useState(false);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
-  const [invoices, setInvoices] = useState<CancelledOrder[]>([]);
-  const [receipts, setReceipts] = useState<Order[]>([]);
+  const [invoices, setInvoices] = useState<DemoCancelledOrder[]>([]);
+  const [receipts, setReceipts] = useState<DemoOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,18 +39,12 @@ export default function CancelledInvoicesScreen() {
       setError(null);
       const today = formatDate(new Date());
 
-      // Fetch both cancelled invoices and receipts
-      const [cancelledResponse, receiptsResponse] = await Promise.all([
-        fetchCancelledInvoices({
-          salesperson_id: userId.toString(),
-          type: 'cancel',
-          date: today
-        }),
-        fetchInvoiceReceipts({
-          salesperson_id: userId.toString(),
-          date: today
-        })
-      ]);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Use demo data
+      const cancelledResponse = demoCancelledInvoices;
+      const receiptsResponse = demoInvoiceReceipts;
 
       if (receiptsResponse?.result?.orders) {
         setReceipts(receiptsResponse.result.orders);

@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollVi
 import { useState } from 'react';
 import { router } from 'expo-router';
 import CustomTextInput from '../../components/ui/CustomTextInput';
-import { changePassword } from '../../api/endpoints';
+import { demoResponses } from '../../utils/demoData';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -47,11 +47,10 @@ export default function ChangePassword() {
 
       setIsLoading(true);
 
-      const response = await changePassword({
-        userId: empId.toString(),
-        isTemp: "FALSE",
-        password: newPassword
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const response = demoResponses.success;
 
       if (response.result.message) {
         Alert.alert(

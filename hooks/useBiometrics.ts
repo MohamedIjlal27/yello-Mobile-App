@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
-import { enrollBiometric } from '../api/endpoints';
+import { demoResponses } from '../utils/demoData';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 
@@ -50,13 +50,13 @@ export const useBiometrics = () => {
         const deviceInfo = await Device.getDeviceTypeAsync();
         const biometricHash = `${timestamp}-${deviceInfo}-${empId}`;
         
-        // Call the API to enroll biometric
-        const response = await enrollBiometric({
-          userId: empId.toString(),
-          biometricHash: biometricHash
-        });
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Demo response - always successful
+        const response = demoResponses.success;
 
-        if (response.result.message === 'Biometric hash updated successfully') {
+        if (response.result.message === 'Operation completed successfully') {
           await AsyncStorage.setItem('biometricEnabled', 'true');
           await AsyncStorage.setItem('biometricHash', biometricHash);
           return true;

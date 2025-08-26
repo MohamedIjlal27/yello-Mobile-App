@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-nat
 import InvoiceCard from './component/DiscountInvoiceCard';
 import CustomSearchBar from '@/components/ui/CustomSearchBar';
 import styles from '@/app/styles/cancelled/styles';
-import { fetchCancelledInvoices, fetchInvoiceReceipts, CancelledOrder, Order } from '@/api/endpoints';
+import { demoCancelledInvoices, demoInvoiceReceipts, DemoCancelledOrder, DemoOrder } from '@/utils/demoData';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 
@@ -21,8 +21,8 @@ export default function DiscountAdjustmentsScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPayModalVisible, setIsPayModalVisible] = useState(false);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
-  const [invoices, setInvoices] = useState<CancelledOrder[]>([]);
-  const [receipts, setReceipts] = useState<Order[]>([]);
+  const [invoices, setInvoices] = useState<DemoCancelledOrder[]>([]);
+  const [receipts, setReceipts] = useState<DemoOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,18 +39,12 @@ export default function DiscountAdjustmentsScreen() {
       setError(null);
       const today = formatDate(new Date());
 
-      // Fetch both cancelled invoices and receipts
-      const [cancelledResponse, receiptsResponse] = await Promise.all([
-        fetchCancelledInvoices({
-          salesperson_id: userId.toString(),
-          type: 'adjustment',
-          date: today
-        }),
-        fetchInvoiceReceipts({
-          salesperson_id: userId.toString(),
-          date: today
-        })
-      ]);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Use demo data
+      const cancelledResponse = demoCancelledInvoices;
+      const receiptsResponse = demoInvoiceReceipts;
 
       if (receiptsResponse?.result?.orders) {
         setReceipts(receiptsResponse.result.orders);
@@ -81,7 +75,7 @@ export default function DiscountAdjustmentsScreen() {
   }, [userId]);
 
   const getOriginalAmount = (orderNumber: string): number | undefined => {
-    const receipt = receipts.find(r => r.order_number.toString() === orderNumber);
+    const receipt = receipts.find(r => r.order_number?.toString() === orderNumber);
     return receipt?.total_amount;
   };
 
@@ -93,8 +87,8 @@ export default function DiscountAdjustmentsScreen() {
     }
 
     const filteredInvoices = invoices.filter(invoice => 
-      invoice.customer.name.toLowerCase().includes(text.toLowerCase()) ||
-      invoice.order_number.toLowerCase().includes(text.toLowerCase())
+      invoice.customer?.name.toLowerCase().includes(text.toLowerCase()) ||
+      invoice.order_number?.toLowerCase().includes(text.toLowerCase())
     );
     setInvoices(filteredInvoices);
   };
@@ -155,7 +149,7 @@ export default function DiscountAdjustmentsScreen() {
           <InvoiceCard
             key={`${invoice.order_id}-${invoice.total_amount}`}
             invoice={invoice}
-            originalAmount={getOriginalAmount(invoice.order_number)}
+            originalAmount={getOriginalAmount(invoice.order_number || '')}
             onPay={() => handlePay(index)}
             onLocate={handleLocate}
             onPress={() => handleInvoicePress(index)}

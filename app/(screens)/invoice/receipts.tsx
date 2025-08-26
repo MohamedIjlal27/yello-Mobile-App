@@ -6,7 +6,7 @@ import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import RecordPaymentModal from './components/RecordPaymentModal';
-import { fetchInvoiceReceipts, Order } from '../../../api/endpoints';
+import { demoInvoiceReceipts, DemoOrder } from '../../../utils/demoData';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../../store/store';
 import { setOrderId } from '../../../store/userSlice';
@@ -28,7 +28,7 @@ export default function InvoiceReceiptsScreen() {
   const [isPayModalVisible, setIsPayModalVisible] = useState(false);
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
   const [showRecordPayment, setShowRecordPayment] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<DemoOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -91,10 +91,11 @@ export default function InvoiceReceiptsScreen() {
       }
 
       console.log('Fetching receipts with userId:', userId);
-      const response = await fetchInvoiceReceipts({ 
-        salesperson_id: userId.toString(), // Ensure userId is string
-        date: today
-      });
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const response = demoInvoiceReceipts;
       
       if (response?.result?.orders && Array.isArray(response.result.orders)) {
         setOrders(response.result.orders);
@@ -129,6 +130,11 @@ export default function InvoiceReceiptsScreen() {
   const handlePay = (index: number) => {
     try {
       const order = orders[index];
+      if (!order?.order_id) {
+        Alert.alert('Error', 'Invalid order data');
+        return;
+      }
+      
       if (!isInvoiceUploaded(order.order_id)) {
         // Show upload invoice modal if invoice hasn't been uploaded
         setSelectedInvoice(index);
@@ -150,8 +156,13 @@ export default function InvoiceReceiptsScreen() {
   };
 
   const handleCancel = (index: number) => {
+    const order = orders[index];
+    if (!order?.order_id) {
+      Alert.alert('Error', 'Invalid order data');
+      return;
+    }
     setSelectedInvoice(index);
-    dispatch(setOrderId(orders[index].order_id.toString()));
+    dispatch(setOrderId(order.order_id.toString()));
     setIsCancelModalVisible(true);
   };
 
@@ -179,7 +190,7 @@ export default function InvoiceReceiptsScreen() {
 
   const handleNextProduct = () => {
     if (selectedInvoice !== null && 
-        orders[selectedInvoice].order_lines && 
+        orders[selectedInvoice]?.order_lines && 
         selectedProduct < orders[selectedInvoice].order_lines.length - 1) {
       setSelectedProduct(prev => prev + 1);
     }
@@ -200,9 +211,13 @@ export default function InvoiceReceiptsScreen() {
   const handleUploadInvoice = () => {
     try {
       if (selectedInvoice !== null) {
-        const orderId = orders[selectedInvoice].order_id;
-        markInvoiceAsUploaded(orderId);
-        setUploadedInvoices(prev => new Set([...prev, orderId]));
+        const order = orders[selectedInvoice];
+        if (!order?.order_id) {
+          Alert.alert('Error', 'Invalid order data');
+          return;
+        }
+        markInvoiceAsUploaded(order.order_id);
+        setUploadedInvoices(prev => new Set([...prev, order.order_id]));
       }
     } catch (error) {
       console.error('Error in handleUploadInvoice:', error);
@@ -213,9 +228,13 @@ export default function InvoiceReceiptsScreen() {
   const handleAcceptPayment = () => {
     try {
       if (selectedInvoice !== null) {
-        const orderId = orders[selectedInvoice].order_id;
-        markInvoiceAsUploaded(orderId);
-        setUploadedInvoices(prev => new Set([...prev, orderId]));
+        const order = orders[selectedInvoice];
+        if (!order?.order_id) {
+          Alert.alert('Error', 'Invalid order data');
+          return;
+        }
+        markInvoiceAsUploaded(order.order_id);
+        setUploadedInvoices(prev => new Set([...prev, order.order_id]));
         setIsPayModalVisible(false);
         setShowRecordPayment(true);
       }
@@ -260,16 +279,16 @@ export default function InvoiceReceiptsScreen() {
           {orders.map((order, index) => (
             <React.Fragment key={order.order_number}>
               <InvoiceCard
-                shopName={order.customer.name}
+                shopName={order.customer?.name || 'Unknown Shop'}
                 address={{
-                  street: order.customer.address?.split(',')[0]?.trim() || '',
-                  city: order.customer.address?.split(',')[1]?.trim() || '',
-                  state: order.customer.address?.split(',')[2]?.trim() || '',
-                  postalCode: order.customer.address?.split(',')[3]?.trim() || ''
+                  street: order.customer?.address?.split(',')[0]?.trim() || '',
+                  city: order.customer?.address?.split(',')[1]?.trim() || '',
+                  state: order.customer?.address?.split(',')[2]?.trim() || '',
+                  postalCode: order.customer?.address?.split(',')[3]?.trim() || ''
                 }}
-                invoiceNumber={order.order_number.toString()}
+                invoiceNumber={order.order_number?.toString() || 'Unknown'}
                 date={new Date(order.order_date).toLocaleDateString()}
-                amount={order.total_amount}
+                amount={order.total_amount || 0}
                 onPay={() => handlePay(index)}
                 onLocate={handleLocate}
                 onPress={() => handleInvoicePress(index)}
@@ -280,12 +299,12 @@ export default function InvoiceReceiptsScreen() {
                   currentIndex={selectedProduct + 1}
                   totalItems={order.order_lines.length}
                   details={{
-                    productName: order.order_lines[selectedProduct].product_name.en_US,
-                    quantity: order.order_lines[selectedProduct].quantity,
-                    uom: order.order_lines[selectedProduct].uom.en_US,
-                    unitPrice: order.order_lines[selectedProduct].unit_price,
-                    amount: order.order_lines[selectedProduct].line_amount,
-                    discount_percentage: order.order_lines[selectedProduct].discount_percentage
+                    productName: order.order_lines[selectedProduct]?.product_name?.en_US || 'Unknown Product',
+                    quantity: order.order_lines[selectedProduct]?.quantity || 0,
+                    uom: order.order_lines[selectedProduct]?.uom?.en_US || 'PCS',
+                    unitPrice: order.order_lines[selectedProduct]?.unit_price || 0,
+                    amount: order.order_lines[selectedProduct]?.line_amount || 0,
+                    discount_percentage: order.order_lines[selectedProduct]?.discount_percentage || 0
                   }}
                   onSwipeLeft={handleNextProduct}
                   onSwipeRight={handlePreviousProduct}
@@ -296,26 +315,26 @@ export default function InvoiceReceiptsScreen() {
         </ScrollView>
       )}
 
-      {selectedInvoice !== null && isPayModalVisible && (
+      {selectedInvoice !== null && isPayModalVisible && orders[selectedInvoice] && (
         <UploadInvoiceModal
-          shopName={orders[selectedInvoice].customer.name}
+          shopName={orders[selectedInvoice].customer?.name || 'Unknown Shop'}
           paymentType="Cash"
           dueDate="21 Days"
-          amount={orders[selectedInvoice].total_amount}
-          orderId={orders[selectedInvoice].order_id}
+          amount={orders[selectedInvoice].total_amount || 0}
+          orderId={orders[selectedInvoice].order_id || 0}
           onClose={handleClosePayModal}
           onUpload={handleUploadInvoice}
           onAcceptPayment={handleAcceptPayment}
         />
       )}
 
-      {selectedInvoice !== null && showRecordPayment && (
+      {selectedInvoice !== null && showRecordPayment && orders[selectedInvoice] && (
         <RecordPaymentModal
           visible={showRecordPayment}
-          shopName={orders[selectedInvoice].customer.name}
+          shopName={orders[selectedInvoice].customer?.name || 'Unknown Shop'}
           dueDate="21 Days"
-          amount={orders[selectedInvoice].total_amount}
-          orderId={orders[selectedInvoice].order_id}
+          amount={orders[selectedInvoice].total_amount || 0}
+          orderId={orders[selectedInvoice].order_id || 0}
           onClose={() => {
             setShowRecordPayment(false);
             setSelectedInvoice(null);
@@ -328,11 +347,11 @@ export default function InvoiceReceiptsScreen() {
         />
       )}
 
-      {selectedInvoice !== null && isCancelModalVisible && (
+      {selectedInvoice !== null && isCancelModalVisible && orders[selectedInvoice] && (
         <CancelBillModal
-          invoiceNo={orders[selectedInvoice].order_number.toString()}
-          customer={orders[selectedInvoice].customer.name}
-          amount={orders[selectedInvoice].total_amount}
+          invoiceNo={orders[selectedInvoice].order_number?.toString() || 'Unknown'}
+          customer={orders[selectedInvoice].customer?.name || 'Unknown Customer'}
+          amount={orders[selectedInvoice].total_amount || 0}
           onProceed={handleProceedCancel}
           onDiscard={handleDiscardCancel}
           onRefresh={loadInvoiceReceipts}

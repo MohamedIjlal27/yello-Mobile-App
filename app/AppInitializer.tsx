@@ -3,7 +3,6 @@ import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setUserId, setUserData } from '../store/userSlice';
 import { AUTH_KEYS } from '../utils/authStorage';
-import { fetchCompanyConfig } from '../api/config';
 
 export default function AppInitializer({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
@@ -14,9 +13,6 @@ export default function AppInitializer({ children }: { children: React.ReactNode
 
   const initializeApp = async () => {
     try {
-      // Fetch company configuration first
-      await fetchCompanyConfig();
-      
       // Check if user is authenticated
       const isAuth = await AsyncStorage.getItem(AUTH_KEYS.IS_AUTHENTICATED);
       

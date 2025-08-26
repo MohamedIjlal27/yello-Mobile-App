@@ -10,7 +10,7 @@ import BiometricEnrollModal from '../../components/modals/BiometricEnrollModal';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthenticated, AUTH_KEYS } from '../../utils/authStorage';
-import { login, LoginResponse, checkEmailAvailability } from '../../api/endpoints';
+import { demoLoginResponse, demoResponses, LoginResponse } from '../../utils/demoData';
 import { useDispatch } from 'react-redux';
 import { setUserId, setUserData } from '../../store/userSlice';
 import { AppDispatch } from '../../store/store';
@@ -140,28 +140,13 @@ export default function SignIn() {
     try {
       setIsLoading(true);
 
-      // First check if email has access
-      console.log('[LOGIN] Checking email access:', username);
-      const emailCheck = await checkEmailAvailability(username.trim());
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Demo login - accept any username/password combination
+      console.log('[DEMO LOGIN] Logging in with:', username);
       
-      if (!emailCheck.data.exists) {
-        Alert.alert(
-          'Access Denied',
-          'This user does not have access to the mobile app. Please contact your administrator.'
-        );
-        return;
-      }
-
-      console.log('[LOGIN] Email access confirmed, proceeding with login');
-
-      const loginParams = {
-        user_id: "",
-        email: username.trim(),
-        password: password.trim(),
-        biometrics: ""
-      };
-
-      const response = await login(loginParams);
+      const response = demoLoginResponse;
       setLoginResponse(response);
 
       if (response.result && response.result.message?.toLowerCase().includes('success')) {
@@ -188,7 +173,7 @@ export default function SignIn() {
             emp_name: response.result.emp_name,
             job_title: response.result.job_title?.en_US || 'Sales Executive',
             profile_pic: response.result.profile_pic,
-            sales_id: response.result.sales_id,
+            sales_id: parseInt(response.result.sales_id) || 101,
             sales_name: response.result.sales_name
           });
         } catch (dbError) {
@@ -221,7 +206,7 @@ export default function SignIn() {
           emp_name: response.result.emp_name,
           job_title: response.result.job_title,
           profile_pic: response.result.profile_pic,
-          sales_id: response.result.sales_id,
+          sales_id: parseInt(response.result.sales_id) || 101,
           sales_name: response.result.sales_name
         }));
         

@@ -6,13 +6,12 @@ import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import UploadInvoiceModal from './components/UploadInvoiceModal';
 import CancelBillModal from './components/CancelBillModal';
 import RecordPaymentModal from './components/RecordPaymentModal';
-import { fetchCreditInvoices } from '../../../api/endpoints';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../../store/store';
 import { setOrderId } from '../../../store/userSlice';
 import { getUploadedInvoices, markInvoiceAsUploaded, isInvoiceUploaded, initDatabase } from '../../../store/database';
 import styles from '@/app/styles/invoiceReceipt/styles';
-import { fetchCompanyConfig } from '../../../api/config';
+import { demoCreditInvoices } from '../../../utils/demoData';
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -43,18 +42,7 @@ export default function CreditInvoicesScreen() {
   const dispatch = useDispatch();
   const userId = useSelector((state: RootState) => state.user.userId);
 
-  // Initialize API configuration
-  useEffect(() => {
-    const initializeAPI = async () => {
-      try {
-        await fetchCompanyConfig();
-      } catch (error) {
-        console.error('Failed to initialize API configuration:', error);
-        setError('Failed to initialize application. Please try again.');
-      }
-    };
-    initializeAPI();
-  }, []);
+
 
   // Updated data loading
   useEffect(() => {
@@ -63,8 +51,7 @@ export default function CreditInvoicesScreen() {
         setLoading(true);
         setError(null);
         
-        // Initialize API configuration first
-        await fetchCompanyConfig();
+
         
         // Load uploaded invoices
         const uploaded = getUploadedInvoices();
@@ -95,32 +82,29 @@ export default function CreditInvoicesScreen() {
         return;
       }
 
-      try {
-        const response = await fetchCreditInvoices({ 
-          salesperson_id: userId.toString()
-        });
-        
-        console.log('Credit Invoices Full Response:', response);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const response = demoCreditInvoices;
+      
+      console.log('Credit Invoices Full Response:', response);
 
-        if (response.result) {
-          if (Array.isArray(response.result.credit_invoices)) {
-            console.log('Credit Invoices Data:', response.result.credit_invoices);
-            setCreditInvoices(response.result.credit_invoices);
-            if (response.result.credit_invoices.length === 0) {
-              setError('No credit invoices available');
-            }
-          } else {
-            console.log('Invalid credit_invoices format:', response.result.credit_invoices);
-            setCreditInvoices([]);
+      if (response.result) {
+        if (Array.isArray(response.result.orders)) {
+          console.log('Credit Invoices Data:', response.result.orders);
+          setCreditInvoices(response.result.orders);
+          if (response.result.orders.length === 0) {
             setError('No credit invoices available');
           }
         } else {
-          console.log('Invalid response format:', response);
+          console.log('Invalid credit_invoices format:', response.result.orders);
           setCreditInvoices([]);
           setError('No credit invoices available');
         }
-      } catch (fetchError) {
-        throw fetchError;
+      } else {
+        console.log('Invalid response format:', response);
+        setCreditInvoices([]);
+        setError('No credit invoices available');
       }
     } catch (error) {
       console.error('Credit Invoices Error:', error);

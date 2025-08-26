@@ -5,10 +5,10 @@ import CashIcon from '../../../../assets/icons/cash.svg'
 import PayIcon from '../../../../assets/icons/pay.svg'
 import LocationIcon from '../../../../assets/icons/location.svg'
 import styles from '@/app/styles/components/cancelInvoiceCard';
-import { CancelledOrder } from '@/api/endpoints';
+import { DemoCancelledOrder } from '@/utils/demoData';
 
 interface CancelledInvoiceCardProps {
-  invoice: CancelledOrder;
+  invoice: DemoCancelledOrder;
   originalAmount?: number;
   onPay: () => void;
   onLocate: () => void;

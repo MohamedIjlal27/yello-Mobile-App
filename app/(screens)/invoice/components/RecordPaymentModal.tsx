@@ -18,7 +18,7 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import type { CameraCapturedPicture } from 'expo-camera';
 import styles from '@/app/styles/components/recordPaymentMethod';
 import PolygonIcon from '../../../../assets/icons/Polygon.svg';
-import { createPayment } from '../../../../api/endpoints';
+import { demoResponses } from '../../../../utils/demoData';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../store/store';
 import ACCOUNTNUMBERS from '@/app/constants/payment';
@@ -143,11 +143,13 @@ export default function RecordPaymentModal({
 
       console.log('Submitting payment:', paymentData);
 
-      const response = await createPayment(paymentData);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const response = demoResponses.success;
       console.log('Payment response:', response);
 
-      if (response.result.message === 'Credit payment created successfully' || 
-          response.result.message === 'Payment recorded successfully!') {
+      if (response.result.message === 'Operation completed successfully') {
         Alert.alert(
           "Success",
           response.result.message,

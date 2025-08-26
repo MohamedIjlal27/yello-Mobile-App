@@ -89,6 +89,10 @@ const styles = StyleSheet.create({
       color: '#666666',
       lineHeight: scale(16),
     },
+    locateSection: {
+      alignItems: 'flex-end',
+      width: 'auto',
+    },
     locateButton: {
       backgroundColor: '#FFFFFFFF',
       paddingHorizontal: spacing.md,
@@ -96,7 +100,8 @@ const styles = StyleSheet.create({
       borderRadius: scale(8),
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'flex-start',
+      alignSelf: 'flex-end',
+      marginBottom: spacing.xs,
     },
     locateIcon: {
       width: scale(14),
@@ -118,11 +123,13 @@ const styles = StyleSheet.create({
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
     },
     invoiceLeft: {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
+      marginRight: spacing.sm,
     },
     closeIcon: {
       width: scale(24),
@@ -131,25 +138,38 @@ const styles = StyleSheet.create({
     },
     invoiceDetails: {
       flex: 1,
+      minWidth: 0, // Allow text to wrap
     },
     invoiceNumber: {
       fontSize: typography.title,
       fontWeight: '700',
       color: '#000000',
       marginBottom: spacing.xs,
+      flexShrink: 1, // Allow text to shrink if needed
     },
     date: {
       fontSize: typography.caption,
       color: '#666666',
+      textAlign: 'right',
+      marginTop: spacing.xs,
+      alignSelf: 'flex-end',
+    },
+    priceSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      marginTop: spacing.xs,
+      alignSelf: 'flex-end',
     },
     amountSection: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginLeft: spacing.md,
       paddingLeft: spacing.md,
       paddingVertical: spacing.sm,
       borderLeftWidth: 1,
       borderLeftColor: '#E5E7EB',
+      flexShrink: 0, // Prevent amount from shrinking
+      minWidth: scale(120), // Ensure minimum width for amount
     },
     currency: {
       fontSize: typography.body,
@@ -160,7 +180,7 @@ const styles = StyleSheet.create({
       fontSize: typography.header,
       fontWeight: '700',
       color: '#000000',
-      marginRight: spacing.md,
+      flexShrink: 0, // Prevent amount from shrinking
     },
     payButton: {
       backgroundColor: '#FF0000',
@@ -171,6 +191,8 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       minWidth: scale(80),
       justifyContent: 'center',
+      flexShrink: 0, // Prevent button from shrinking
+      marginLeft: spacing.sm,
     },
     payIcon: {
       width: scale(20),
